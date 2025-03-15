@@ -41,4 +41,6 @@ export const IPC_EVENTS = {
   INSTALLATION_CALLBACK_ON_ERROR: (versionId: string) =>
     `installation:${versionId}:callback-on-error`,
   INSTALLATION_USE_VERSION: 'installation:use-version',
+  SSH_CONNECT: 'ssh-connect',
+  SSH_DISCONNECT: 'ssh-disconnect',
 };
