@@ -16,6 +16,7 @@ import type {
   OnDownloadProgress,
 } from './installation';
 import type { ShowContextMenuRequest } from './menu';
+import type { SSHConnectionInfo, SSHConnectionResponse } from './ssh';
 import type {
   CreateWorkspaceRequest,
   IWorkspace,
@@ -70,6 +71,8 @@ export interface ExposedElectron {
 
   subscribeOnInstallationWillOpen: (onInstallationWillOpen: () => void) => () => void;
   getInstallationMetadata: () => Promise<InstallationGetMetadataResponse>;
+  connectSSH: (localSSHInfo: SSHConnectionInfo) => Promise<SSHConnectionResponse>;
+  disconnectSSH: () => Promise<{ success: boolean; error?: string }>;
   installVersion: (
     version: {
       versionId: string;

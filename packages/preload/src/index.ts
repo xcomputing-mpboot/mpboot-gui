@@ -35,6 +35,7 @@ import {
   subscribeOnInstallationWillOpen,
   useVersion,
 } from './installation';
+import { connectSSH, disconnectSSH } from './sshConnection';
 
 export { sha256sum } from './nodeCrypto';
 export { versions } from './versions';
@@ -74,6 +75,8 @@ export const exposed: ExposedElectron = {
   getInstallationMetadata,
   installVersion: installVersion,
   useVersion: useVersion,
+  connectSSH: connectSSH,
+  disconnectSSH: disconnectSSH,
 };
 
 contextBridge.exposeInMainWorld('electron', exposed);

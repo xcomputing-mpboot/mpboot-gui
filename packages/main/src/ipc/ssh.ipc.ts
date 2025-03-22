@@ -7,15 +7,17 @@ const ssh = new NodeSSH();
 
 wrapperIpcMainHandle(
   IPC_EVENTS.SSH_CONNECT,
-  async (_event, { username, server, password }) => {
+  async (_event, { username, host, password }) => {
+    console.log('ipc event',username, host, password);
     try {
       await ssh.connect({
-        host: server,
+        host: host,
         username: username,
         password: password,
       });
       return { success: true };
     } catch (error) {
+      console.error(error);
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error', 

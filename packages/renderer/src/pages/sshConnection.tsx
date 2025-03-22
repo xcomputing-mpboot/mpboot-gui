@@ -7,29 +7,25 @@ import classNames from 'classnames/bind';
 import styles from './sshConnection.module.scss';
 import { SSHActions } from '../redux/slice/ssh.slice';
 import type { RootState } from '../redux/store/root';
-import { IPC_EVENTS } from '../../../common/ipc';
-
-declare global {
-  interface Window {
-    electronAPI: {
-      invoke: (channel: string, ...args: any[]) => Promise<any>;
-    };
-  }
-}
+import { useElectron } from '../hooks/useElectron';
 
 const cx = classNames.bind(styles);
+
 
 export const SSHConnectionPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  const electron = useElectron();
   const sshState = useSelector((state: RootState) => state.ssh);
 
   const [localSSHInfo, setLocalSSHInfo] = useState({
     username: sshState?.username || '',
-    server: sshState?.server || '',
     password: sshState?.password || '',
+    host: sshState?.host || '',
+    port: 22,
+    tryKeyboard: true,
   });
+  
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -42,9 +38,7 @@ export const SSHConnectionPage = () => {
   const handleConnect = async () => {
     try {
       console.log(localSSHInfo);
-      
-      const result = await window.electronAPI.invoke(IPC_EVENTS.SSH_CONNECT, localSSHInfo);
-      console.log(result);
+      const result = await electron.connectSSH(localSSHInfo);
 
       if (result.success) {
         dispatch(SSHActions.setConnectionStatus(true));
@@ -62,7 +56,7 @@ export const SSHConnectionPage = () => {
 
   const handleDisconnect = async () => {
     try {
-      const result = await window.electronAPI.invoke(IPC_EVENTS.SSH_DISCONNECT);
+      const result = await electron.disconnectSSH();
 
       if (result.success) {
         dispatch(SSHActions.setConnectionStatus(false));
@@ -103,14 +97,14 @@ export const SSHConnectionPage = () => {
           </div>
 
           <div className={cx('form-group')}>
-            <label htmlFor="server">Server</label>
+            <label htmlFor="host">Host</label>
             <input
               type="text"
-              id="server"
-              name="server"
-              value={localSSHInfo.server}
+              id="host"
+              name="host"
+              value={localSSHInfo.host}
               onChange={handleInputChange}
-              placeholder="Enter server address"
+              placeholder="Enter host address"
             />
           </div>
           <div className={cx('form-group')}>

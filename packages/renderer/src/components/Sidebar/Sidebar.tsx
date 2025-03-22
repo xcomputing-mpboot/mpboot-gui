@@ -117,7 +117,7 @@ export const Sidebar = () => {
                   openSideBar: stateSideBar.openSideBar,
                 }),
               );
-              navigate('/ssh-connection'); // Đảm bảo route này tồn tại
+              navigate('/ssh-connection');
             }}
           >
             <FontAwesomeIcon className={cx('icon-size')} icon={faTerminal} />
