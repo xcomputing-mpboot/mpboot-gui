@@ -1,0 +1,56 @@
+.file-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    padding: 0;
+    margin-top: 10px;
+}
+
+.file-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background 0.3s;
+    background-color: white;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.file-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.folder-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.folder-btn:hover {
+    color: #007bff;
+}
+
+.select-btn {
+    margin-top: 5px;
+    background-color: #1E3A42;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.select-btn:hover {
+    background-color: #218838;
+}

@@ -1,0 +1,44 @@
+import { ipcRenderer } from 'electron';
+import { IPC_EVENTS } from '../../common/ipc';
+import type {DirectoryNode } from '../../common/ssh';
+
+
+export const getSSHDirectoryTree = async (path : string): Promise<DirectoryNode> => {
+    try {
+      const res = await ipcRenderer.invoke(IPC_EVENTS.SSH_DIRECTORY_TREE, path);
+      if (!res.success) {
+        throw new Error(res.error || 'Failed to fetch SSH directory tree');
+      }
+  
+      return res.directoryState.directoryTree as DirectoryNode;
+    } catch (error) {
+      console.error('SSH Directory Tree Error:', error);
+      throw error;
+    }
+  };
+
+export const openSSHDirectory = async (path: string): Promise<string> => {
+  try {
+    const res = await ipcRenderer.invoke(IPC_EVENTS.SSH_DIRECTORY_OPEN, { path });
+    if (!res.success) {
+      throw new Error(res.error || 'Failed to open SSH directory');
+    }
+    return res.content;
+  } catch (error) {
+    console.error('SSH Directory Open Error:', error);
+    throw error;
+  }
+};
+
+export const selectSSHProjectDirectory = async (path: string): Promise<{ success: boolean; selectedPath?: string }> => {
+  try {
+    const res = await ipcRenderer.invoke(IPC_EVENTS.SSH_DIRECTORY_SELECT_PROJECT, { path });
+    if (!res.success) {
+      throw new Error(res.error || 'Failed to select project directory');
+    }
+    return { success: true, selectedPath: res.selectedPath };
+  } catch (error) {
+    console.error('SSH Select Project Directory Error:', error);
+    throw error;
+  }
+};

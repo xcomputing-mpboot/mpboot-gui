@@ -43,7 +43,8 @@ export const SSHConnectionPage = () => {
       if (result.success) {
         dispatch(SSHActions.setConnectionStatus(true));
         dispatch(SSHActions.setSSHError(undefined));
-        alert('Connected successfully!');
+        dispatch(SSHActions.setSSHDetails(localSSHInfo));
+        navigate('/dir-view');
       } else {
         dispatch(SSHActions.setConnectionStatus(false));
         dispatch(SSHActions.setSSHError(result.error));

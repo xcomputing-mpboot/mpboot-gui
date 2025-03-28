@@ -36,6 +36,7 @@ import {
   useVersion,
 } from './installation';
 import { connectSSH, disconnectSSH } from './sshConnection';
+import { getSSHDirectoryTree, openSSHDirectory, selectSSHProjectDirectory} from './sshDirectoryTree';
 
 export { sha256sum } from './nodeCrypto';
 export { versions } from './versions';
@@ -77,6 +78,9 @@ export const exposed: ExposedElectron = {
   useVersion: useVersion,
   connectSSH: connectSSH,
   disconnectSSH: disconnectSSH,
+  getSSHDirectoryTree: getSSHDirectoryTree,
+  openSSHDirectory: openSSHDirectory,
+  selectSSHProjectDirectory: selectSSHProjectDirectory,
 };
 
 contextBridge.exposeInMainWorld('electron', exposed);

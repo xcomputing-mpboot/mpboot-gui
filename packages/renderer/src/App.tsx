@@ -31,6 +31,10 @@ const InstallationPage = lazy(() =>
 const SSHConnectionPage = lazy(() =>
   import('./pages/sshConnection').then(module => ({ default: module.SSHConnectionPage })),
 );
+
+const DirViewPage = lazy(() =>
+  import('./pages/dirView').then(module => ({ default: module.DirViewPage })),
+);
 function App() {
   const size = useWindowSize();
   const electron = useElectron();
@@ -86,6 +90,10 @@ function App() {
             <Route
               path="/ssh-connection"
               element={<SSHConnectionPage />}
+            />
+            <Route
+              path="/dir-view"
+              element={<DirViewPage />}
             />
           </Routes>
         </HashRouter>

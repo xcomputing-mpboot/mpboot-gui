@@ -19,6 +19,9 @@ export const sshSlice = createSlice({
     setSSHError: (state, action: PayloadAction<string | undefined>) => {
       state.error = action.payload;
     },
+    setSSHDirectory: (state, action: PayloadAction<string>) => {
+      state.currentPath = action.payload;
+    },
     resetSSHState: () => initialSSHState,
   },
 });

@@ -4,6 +4,7 @@ export type SSHState = {
     password: string;
     isConnected: boolean;
     error?: string;
+    currentPath?: string;
   };
   
   export const initialSSHState: SSHState = {
@@ -11,4 +12,5 @@ export type SSHState = {
     host: '',
     password: '',
     isConnected: false,
+    currentPath: '',
   };

@@ -7,9 +7,18 @@ export interface SSHConnectionInfo {
     passphrase?: string;
   }
   
-  export interface SSHConnectionResponse {
+export interface SSHConnectionResponse {
     success: boolean;
     message: string;
     error?: string;
   }
-  
+export interface DirectoryNode {
+    name: string;
+    path: string;
+    children?: DirectoryNode[];
+}
+
+export interface SSHDirectoryState {
+    currentPath: string;
+    directoryTree: DirectoryNode;
+}
