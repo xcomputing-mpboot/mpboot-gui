@@ -5,6 +5,7 @@ export type SSHState = {
     isConnected: boolean;
     error?: string;
     currentPath?: string;
+    selectedPath?: string;
   };
   
   export const initialSSHState: SSHState = {
@@ -13,4 +14,5 @@ export type SSHState = {
     password: '',
     isConnected: false,
     currentPath: '',
+    selectedPath: '',
   };

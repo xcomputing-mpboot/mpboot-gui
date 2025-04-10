@@ -1,3 +1,5 @@
+import type { SSHConnectionInfo } from './ssh';
+
 export interface IWorkspace {
   id: number;
   name: string;
@@ -5,6 +7,8 @@ export interface IWorkspace {
   createdAt: Date;
   updatedAt: Date;
   inputData?: IWorkspaceInputData[];
+  isSSH?: boolean;
+  sshConnectionInfo?: SSHConnectionInfo;
 }
 
 export interface CreateWorkspaceRequest {

@@ -5,7 +5,6 @@ import { SingletonHooksContainer } from 'react-singleton-hook';
 import type { ExposedElectron } from '../../common/electron';
 import { unimplementedExposedElectron } from '../../common/electron';
 import App from './App';
-import './index.css';
 import { store } from './redux/store/root';
 export const ElectronContext = React.createContext<ExposedElectron>(unimplementedExposedElectron);
 

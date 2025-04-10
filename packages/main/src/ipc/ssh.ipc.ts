@@ -44,8 +44,24 @@ wrapperIpcMainHandle(
   IPC_EVENTS.SSH_DIRECTORY_TREE,
   async (_, currentPath = '.') => {
     try {
-      const result = await ssh.execCommand(`cd ${currentPath} && ls -d */`);
-      if (result.stderr) throw new Error(result.stderr);
+      const result = await ssh.execCommand(`cd ${currentPath} && ls -d */ 2>/dev/null`);
+      
+      // Nếu stdout rỗng, tức là không có thư mục con => trả về danh sách rỗng
+      if (!result.stdout.trim()) {
+        return {
+          success: true,
+          message: 'Fetched SSH directory tree',
+          directoryState: {
+            currentPath,
+            directoryTree: {
+              name: currentPath,
+              path: currentPath,
+              children: [], // Không có thư mục con
+            },
+          } as SSHDirectoryState,
+        };
+      }
+
       const directories = result.stdout
         .split('\n')
         .filter(dir => dir.trim() !== '')
@@ -77,6 +93,7 @@ wrapperIpcMainHandle(
     }
   },
 );
+
 
 
 // Mở thư mục trên SSH
@@ -127,21 +144,6 @@ wrapperIpcMainHandle(
   },
 );
 
-// Đọc nội dung tệp trong SSH
-wrapperIpcMainHandle(
-  IPC_EVENTS.SSH_CONTENT_FILE_READ,
-  async (_event, { path }) => {
-    try {
-      const result = await ssh.execCommand(`cat "${path}"`);
-      return { success: true, content: result.stdout };
-    } catch (error) {
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  },
-);
 
 // Thực thi lệnh SSH
 wrapperIpcMainHandle(
@@ -151,6 +153,24 @@ wrapperIpcMainHandle(
       const result = await ssh.execCommand(command);
       return { success: true, output: result.stdout };
     } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  },
+);
+
+// Upload tệp lên SSH
+wrapperIpcMainHandle(
+  IPC_EVENTS.SSH_CONTENT_FILE_COPY,
+  async (_event, { localPath, remotePath }) => {
+    console.log('📤 Uploading file:', localPath, 'to', remotePath);
+    try {
+      await ssh.putFile(localPath, remotePath);
+      return { success: true };
+    } catch (error) {
+      console.error(localPath, remotePath);
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error',

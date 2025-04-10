@@ -32,6 +32,26 @@ wrapperIpcMainHandle(
 );
 
 wrapperIpcMainHandle(
+  IPC_EVENTS.WORKSPACE_CREATE_SSH,
+  async (_event, req: CreateWorkspaceRequest): Promise<IWorkspace> => {
+    if (!validateCreateWorkspaceRequest(req)) {
+      throw new Error('Invalid request');
+    }
+    const workspace = await repository.createWorkspace(new Workspace(req.name, req.path));
+    const inputData = await repository.createInputDataForWorkspace(
+      workspace.id,
+      req.inputData.map(e => new WorkspaceInputData(e)),
+    );
+    const directoryTree = new DirectoryTree(workspace.name, workspace.path, inputData);
+    instanceManager.set(createInstanceKey('content-file', req.path), directoryTree);
+    return {
+      ...workspace,
+      inputData: inputData,
+    };
+  },
+);
+
+wrapperIpcMainHandle(
   IPC_EVENTS.WORKSPACE_REMOVE,
   async(_event, req: number): Promise<void> => {
     await repository.removeWorkspace(req);

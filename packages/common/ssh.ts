@@ -1,3 +1,5 @@
+import type { Directory } from './directory-tree';
+
 export interface SSHConnectionInfo {
     host: string;
     port?: number;
@@ -12,13 +14,8 @@ export interface SSHConnectionResponse {
     message: string;
     error?: string;
   }
-export interface DirectoryNode {
-    name: string;
-    path: string;
-    children?: DirectoryNode[];
-}
 
 export interface SSHDirectoryState {
     currentPath: string;
-    directoryTree: DirectoryNode;
+    directoryTree: Directory;
 }
