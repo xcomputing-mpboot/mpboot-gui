@@ -45,14 +45,16 @@ export const SSHConnectionPage = () => {
 
         const osResult = await electron.executeSSHCommand('uname -s');
         if (osResult.success) {
+          console.log(osResult.output);
           let detectedOS = osResult.output?.toLowerCase().trim();
+          console.log('Detected OS:', detectedOS);
           if (!detectedOS || osResult.error) {
             const winCheckResult = await electron.executeSSHCommand('ver');
             detectedOS = winCheckResult.success ? 'windows' : 'unknown';
           }
           dispatch(SSHActions.setRemoteOS(detectedOS));
         }
-        console.log('Detected OS:', sshState.remoteOS);
+        console.log(sshState)
 
         navigate('/dir-view');
       } else {
