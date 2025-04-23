@@ -36,7 +36,7 @@ import {
   subscribeOnInstallationWillOpen,
   useVersion,
 } from './installation';
-import { connectSSH, disconnectSSH } from './sshConnection';
+import { connectSSH, disconnectSSH, executeSSHCommand } from './sshConnection';
 import { copyContentFiletoSSH, getSSHDirectoryTree, openSSHDirectory, selectSSHProjectDirectory} from './sshDirectoryTree';
 
 export { sha256sum } from './nodeCrypto';
@@ -79,6 +79,7 @@ export const exposed: ExposedElectron = {
   useVersion: useVersion,
   connectSSH: connectSSH,
   disconnectSSH: disconnectSSH,
+  executeSSHCommand: executeSSHCommand,
   getSSHDirectoryTree: getSSHDirectoryTree,
   openSSHDirectory: openSSHDirectory,
   selectSSHProjectDirectory: selectSSHProjectDirectory,
