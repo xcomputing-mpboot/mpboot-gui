@@ -42,20 +42,15 @@ export const SSHConnectionPage = () => {
         dispatch(SSHActions.setConnectionStatus(true));
         dispatch(SSHActions.setSSHError(undefined));
         dispatch(SSHActions.setSSHDetails(localSSHInfo));
-
         const osResult = await electron.executeSSHCommand('uname -s');
         if (osResult.success) {
-          console.log(osResult.output);
           let detectedOS = osResult.output?.toLowerCase().trim();
-          console.log('Detected OS:', detectedOS);
           if (!detectedOS || osResult.error) {
             const winCheckResult = await electron.executeSSHCommand('ver');
             detectedOS = winCheckResult.success ? 'windows' : 'unknown';
           }
           dispatch(SSHActions.setRemoteOS(detectedOS));
         }
-        console.log(sshState)
-
         navigate('/dir-view');
       } else {
         dispatch(SSHActions.setConnectionStatus(false));
