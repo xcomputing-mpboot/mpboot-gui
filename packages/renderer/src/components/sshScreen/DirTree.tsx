@@ -15,6 +15,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import "./DirTree.css"; // Import file CSS
 import { Directory } from "../../../../common/directory-tree";
+import { useBinarySetup } from '../../hooks/useBinarySetup';
 
 export const DirTree = () => {
   const electron = useElectron();
@@ -25,19 +26,25 @@ export const DirTree = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isLoading, setIsLoading] = useState(false);
   const selectedPath = useSelector((state: RootState) => state.ssh.selectedPath);
+  const sshState = useSelector((state: RootState) => state.ssh);
+  const { isInstalling, error: installError } = useBinarySetup();
+
+  console.log("SSH State:", sshState);
 
   const fetchDirectoryTree = async (path = currentPath) => {
     setIsLoading(true);
     try {
       const result = await electron.getSSHDirectoryTree(path);
       setDirectoryTree(result.children || []);
-      setCurrentPath(result.path.replace(/^\/\//, "/")); // Normalize path
+      setCurrentPath(result.path.replace(/^\/\//, "/"));
     } catch (error) {
       console.error("Error fetching SSH directory tree:", error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  
 
   useEffect(() => {
     fetchDirectoryTree();
@@ -68,6 +75,16 @@ export const DirTree = () => {
 
   return (
     <div className="dir-tree-container">
+      {isInstalling && (
+        <div className="installation-status">
+          Installing MPBoot binary...
+        </div>
+      )}
+      {installError && (
+        <div className="error-message">
+          Failed to install binary: {installError}
+        </div>
+      )}
       <h2 className="dir-tree-title">
         <FontAwesomeIcon icon={faFolder} className="title-icon" />
         SSH File Explorer
