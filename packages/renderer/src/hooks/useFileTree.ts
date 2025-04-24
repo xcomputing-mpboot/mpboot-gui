@@ -41,6 +41,7 @@ const useFileTreeImpl = (): [
   const electron = useElectron();
   const [nodeData, setNodeData] = useState<NodeData>();
   const navigate = useNavigate();
+  const sshState = useSelector((state: RootState) => state.ssh);
 
   useEffect(() => {
     if (!dirPath) {
@@ -50,6 +51,11 @@ const useFileTreeImpl = (): [
     (async () => {
       try {
         const directory = await electron.getFirstLoadDirectoryTree(dirPath);
+        console.log('directory', directory);
+        if(sshState.currentPath) {
+          const sshDir = await electron.openSSHDirectory(sshState.currentPath);
+          console.log('sshDir', sshDir);
+        }
         const tmp = convertDirectoryToNodeData(directory);
         setNodeData(tmp);
         resetExecutionState();

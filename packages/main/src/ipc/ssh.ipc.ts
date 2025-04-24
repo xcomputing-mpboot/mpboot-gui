@@ -99,13 +99,52 @@ wrapperIpcMainHandle(
 // Mở thư mục trên SSH
 wrapperIpcMainHandle(
   IPC_EVENTS.SSH_DIRECTORY_OPEN,
-  async (_event, { path }) => {
+  async (_, currentPath = '.') => {
     try {
-      const result = await ssh.execCommand(`ls -l "${path}"`);
-      return { success: true, content: result.stdout };
+      const result = await ssh.execCommand(`cd ${currentPath} && ls */ 2>/dev/null`);
+      
+      // Nếu stdout rỗng, tức là không có thư mục con => trả về danh sách rỗng
+      if (!result.stdout.trim()) {
+        return {
+          success: true,
+          message: 'Fetched SSH directory tree',
+          directoryState: {
+            currentPath,
+            directoryTree: {
+              name: currentPath,
+              path: currentPath,
+              children: [], // Không có thư mục con
+            },
+          } as SSHDirectoryState,
+        };
+      }
+
+      const directories = result.stdout
+        .split('\n')
+        .filter(dir => dir.trim() !== '')
+        .map(dir => ({
+          name: dir.replace('/', ''), 
+          path: `${currentPath}/${dir.replace('/', '')}`, 
+          children: [],
+        }));
+
+      return {
+        success: true,
+        message: 'Fetched SSH directory tree',
+        directoryState: {
+          currentPath,
+          directoryTree: {
+            name: currentPath,
+            path: currentPath,
+            children: directories,
+          },
+        } as SSHDirectoryState,
+      };
     } catch (error) {
-      return { 
-        success: false, 
+      console.error('❌ SSH_DIRECTORY_TREE Error:', error);
+      return {
+        success: false,
+        message: 'Error fetching SSH directory tree',
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }

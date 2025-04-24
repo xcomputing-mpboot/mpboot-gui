@@ -4,7 +4,7 @@ import type { Directory } from '../../common/directory-tree';
 
 
 export const getSSHDirectoryTree = async (path : string): Promise<Directory> => {
-    try {
+  try {
       const res = await ipcRenderer.invoke(IPC_EVENTS.SSH_DIRECTORY_TREE, path);
       if (!res.success) {
         throw new Error(res.error || 'Failed to fetch SSH directory tree');
@@ -17,13 +17,13 @@ export const getSSHDirectoryTree = async (path : string): Promise<Directory> => 
     }
   };
 
-export const openSSHDirectory = async (path: string): Promise<string> => {
+export const openSSHDirectory = async (path: string): Promise<Directory> => {
   try {
     const res = await ipcRenderer.invoke(IPC_EVENTS.SSH_DIRECTORY_OPEN, { path });
     if (!res.success) {
       throw new Error(res.error || 'Failed to open SSH directory');
     }
-    return res.content;
+    return res.directoryState.directoryTree as Directory;
   } catch (error) {
     console.error('SSH Directory Open Error:', error);
     throw error;
