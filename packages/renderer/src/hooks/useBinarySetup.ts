@@ -20,32 +20,32 @@ export const useBinarySetup = () => {
       try {
         const tempDir = await electron.executeSSHCommand('mktemp -d');
         if (!tempDir.success) throw new Error('Failed to create temp directory');
-        
         const tempPath = tempDir.output?.trim();
-        const downloadUrl = remoteOS.includes('win') ? BinaryUrls.Windows :
+
+        const downloadUrl = remoteOS.includes('windows') ? BinaryUrls.Windows :
                           remoteOS.includes('darwin') ? BinaryUrls.Mac :
                           BinaryUrls.Linux;
-
         const archiveName = downloadUrl.split('/').pop();
-        const response = await fetch(downloadUrl);
-        const blob = await response.blob();
-        const localTempPath = await saveTempFile(blob, archiveName!);
 
-        await electron.copyContentFiletoSSH(
-          localTempPath,
-          `${tempPath}/${archiveName}`,
-        );
+        const downloadCmd = remoteOS.includes('windows') 
+          ? `powershell -Command "Invoke-WebRequest -Uri '${downloadUrl}' -OutFile '${tempPath}/${archiveName}'"` 
+          : `cd ${tempPath} && curl -L "${downloadUrl}" -o "${archiveName}"`;
+
+        const downloadResult = await electron.executeSSHCommand(downloadCmd);
+        if (!downloadResult.success) throw new Error('Failed to download binary');
 
         const binaryPath = getBinaryPathRemote(remoteOS);
         const commands = [
-          `mkdir -p $(dirname "${binaryPath}")`,
-          remoteOS.includes('win') 
-            ? `7z x "${tempPath}/${archiveName}" -o"${tempPath}/extracted"` 
-            : `unzip "${tempPath}/${archiveName}" -d "${tempPath}/extracted"`,
-          `cp "${tempPath}/extracted/${CompressedPath[remoteOS.includes('win') ? 'Windows' : remoteOS.includes('darwin') ? 'Mac' : 'Linux']}" "${binaryPath}"`,
-          `chmod +x "${binaryPath}"`,
-          `rm -rf "${tempPath}"`,
+          `mkdir -p $(dirname ${binaryPath})`,
+          remoteOS.includes('windows')
+            ? `cd ${tempPath} && 7z x ${archiveName} -o"extracted"` 
+            : `cd ${tempPath} && unzip ${archiveName} -d "extracted"`,
+          `cp ${tempPath}/extracted/${CompressedPath[remoteOS.includes('windows') ? 'Windows' : remoteOS.includes('darwin') ? 'Mac' : 'Linux']} ${binaryPath}`,
+          remoteOS.includes('windows') ? 'echo "Windows - no chmod needed"' : `chmod +x ${binaryPath}`,
+          `rm -rf ${tempPath}`,
         ];
+
+        console.log('Commands to execute:', commands);
 
         for (const cmd of commands) {
           const result = await electron.executeSSHCommand(cmd);
@@ -63,10 +63,4 @@ export const useBinarySetup = () => {
   }, [remoteOS]);
 
   return { isInstalling, error };
-};
-
-const saveTempFile = async (blob: Blob, filename: string): Promise<string> => {
-  //const buffer = await blob.arrayBuffer();
-  const tempPath = `/tmp/${filename}`;
-  return tempPath;
 };
