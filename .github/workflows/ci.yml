@@ -38,4 +38,5 @@ jobs:
   draft_release:
     if: github.event_name == 'push' && github.ref_name == 'main'
     uses: ./.github/workflows/release.yml
-
+    permissions:
+      contents: write
