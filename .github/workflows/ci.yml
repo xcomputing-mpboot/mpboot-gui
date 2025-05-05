@@ -7,6 +7,7 @@ on:
       - binarydownload
     paths-ignore:
       - '.github/**'
+      - '!.github/workflows/ci.yml'
       - '!.github/workflows/typechecking.yml'
       - '!.github/workflows/tests.yml'
       - '!.github/workflows/release.yml'
