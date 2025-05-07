@@ -19,7 +19,8 @@ export const getSSHDirectoryTree = async (path : string): Promise<Directory> => 
 
 export const openSSHDirectory = async (path: string): Promise<Directory> => {
   try {
-    const res = await ipcRenderer.invoke(IPC_EVENTS.SSH_DIRECTORY_OPEN, { path });
+    const res = await ipcRenderer.invoke(IPC_EVENTS.SSH_DIRECTORY_OPEN, path);
+    console.log('res1', res);
     if (!res.success) {
       throw new Error(res.error || 'Failed to open SSH directory');
     }

@@ -7,57 +7,134 @@ import { WorkspaceInputData } from '../entity/workspace-input-data';
 import { repository } from '../repository';
 import { wrapperIpcMainHandle } from './common.ipc';
 
-wrapperIpcMainHandle(IPC_EVENTS.WORKSPACE_LIST, async (_event): Promise<IWorkspace[]> => {
-  return await repository.listWorkspaces();
-});
+// List Workspaces
+wrapperIpcMainHandle(
+  IPC_EVENTS.WORKSPACE_LIST,
+  async (_event): Promise<IWorkspace[]> => {
+    const workspaces = await repository.listWorkspaces();
+    return workspaces.map(ws => {
+      // Build SSH DTO ensuring password is string
+      let sshInfo: { host: string; port?: number; username: string; password: string } | undefined;
+      if (ws.sshConnectionInfo) {
+        sshInfo = {
+          host: ws.sshConnectionInfo.host,
+          port: ws.sshConnectionInfo.port,
+          username: ws.sshConnectionInfo.username,
+          password: ws.sshConnectionInfo.password as string,
+        };
+      }
+      return {
+        ...ws,
+        sshConnectionInfo: sshInfo,
+      };
+    });
+  },
+);
 
+// Create Workspace (local or SSH)
 wrapperIpcMainHandle(
   IPC_EVENTS.WORKSPACE_CREATE,
   async (_event, req: CreateWorkspaceRequest): Promise<IWorkspace> => {
     if (!validateCreateWorkspaceRequest(req)) {
       throw new Error('Invalid request');
     }
-    const workspace = await repository.createWorkspace(new Workspace(req.name, req.path));
+
+    // Create Workspace entity
+    const wsEntity = new Workspace(req.name, req.path, !!req.sshConnectionInfo);
+    const workspace = await repository.createWorkspace(wsEntity);
+
+    // If SSH info provided, persist and reload
+    if (req.sshConnectionInfo) {
+      const { host, port, username, password } = req.sshConnectionInfo;
+      if (port === undefined) throw new Error('SSH port is required');
+      if (!password) throw new Error('SSH password is required');
+
+      await repository.createSSHConnection(workspace.id, { host, port, username, password});
+      const sshEntity = await repository.getSSHConnectionByWorkspaceId(workspace.id);
+      if (sshEntity) {
+        workspace.sshConnectionInfo = {
+          host: sshEntity.host,
+          port: sshEntity.port,
+          username: sshEntity.username,
+          password: sshEntity.password,
+        };
+      }
+    }
+
+    // Create input data
     const inputData = await repository.createInputDataForWorkspace(
       workspace.id,
       req.inputData.map(e => new WorkspaceInputData(e)),
     );
+
+    // Build directory tree and cache instance
     const directoryTree = new DirectoryTree(workspace.name, workspace.path, inputData);
     instanceManager.set(createInstanceKey('content-file', req.path), directoryTree);
+
     return {
       ...workspace,
-      inputData: inputData,
+      inputData,
+      sshConnectionInfo: workspace.sshConnectionInfo ?? undefined,
     };
   },
 );
 
+// Create SSH-only Workspace
 wrapperIpcMainHandle(
   IPC_EVENTS.WORKSPACE_CREATE_SSH,
   async (_event, req: CreateWorkspaceRequest): Promise<IWorkspace> => {
     if (!validateCreateWorkspaceRequest(req)) {
       throw new Error('Invalid request');
     }
-    const workspace = await repository.createWorkspace(new Workspace(req.name, req.path));
+
+    // Create SSH Workspace entity
+    const wsEntity = new Workspace(req.name, req.path, true);
+    const workspace = await repository.createWorkspace(wsEntity);
+
+    // Must have SSH info
+    if (req.sshConnectionInfo) {
+      const { host, port, username, password } = req.sshConnectionInfo;
+      if (port === undefined) throw new Error('SSH port is required');
+      if (!password) throw new Error('SSH password is required');
+
+      await repository.createSSHConnection(workspace.id, { host, port, username, password });
+      const sshEntity = await repository.getSSHConnectionByWorkspaceId(workspace.id);
+      if (sshEntity) {
+        workspace.sshConnectionInfo = {
+          host: sshEntity.host,
+          port: sshEntity.port,
+          username: sshEntity.username,
+          password: sshEntity.password,
+        };
+      }
+    }
+
+    // Create input data
     const inputData = await repository.createInputDataForWorkspace(
       workspace.id,
       req.inputData.map(e => new WorkspaceInputData(e)),
     );
+
     const directoryTree = new DirectoryTree(workspace.name, workspace.path, inputData);
     instanceManager.set(createInstanceKey('content-file', req.path), directoryTree);
+
     return {
       ...workspace,
-      inputData: inputData,
+      inputData,
+      sshConnectionInfo: workspace.sshConnectionInfo ?? undefined,
     };
   },
 );
 
+// Remove Workspace
 wrapperIpcMainHandle(
   IPC_EVENTS.WORKSPACE_REMOVE,
-  async(_event, req: number): Promise<void> => {
+  async (_event, req: number): Promise<void> => {
     await repository.removeWorkspace(req);
   },
 );
 
+// Validation helper
 const validateCreateWorkspaceRequest = (req: CreateWorkspaceRequest) => {
-  return req.name && req.path && req.inputData;
+  return Boolean(req.name && req.path && req.inputData);
 };

@@ -101,13 +101,13 @@ wrapperIpcMainHandle(
   IPC_EVENTS.SSH_DIRECTORY_OPEN,
   async (_, currentPath = '.') => {
     try {
-      const result = await ssh.execCommand(`cd ${currentPath} && ls */ 2>/dev/null`);
-      
+      console.log(`cd /${currentPath} && ls 2>/dev/null`);
+      const result = await ssh.execCommand(`cd /${currentPath} && ls 2>/dev/null`);
       // Nếu stdout rỗng, tức là không có thư mục con => trả về danh sách rỗng
       if (!result.stdout.trim()) {
         return {
           success: true,
-          message: 'Fetched SSH directory tree',
+          message: 'ls',
           directoryState: {
             currentPath,
             directoryTree: {
@@ -130,7 +130,7 @@ wrapperIpcMainHandle(
 
       return {
         success: true,
-        message: 'Fetched SSH directory tree',
+        message: 'ls2',
         directoryState: {
           currentPath,
           directoryTree: {
