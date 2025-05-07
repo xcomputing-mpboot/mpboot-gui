@@ -27,6 +27,7 @@ const multiSourcesReducer = (state: string[], action: MultiSourcesReducerAction)
 export const useParameter = (): {
   setSource: (source: string) => void;
   setParameter: (payload: Partial<ParameterState>) => void;
+  resetParameter: () => void;
   multiSourcesDispatch: React.Dispatch<MultiSourcesReducerAction>;
 } => {
   const dispatch = useDispatch();
@@ -45,5 +46,9 @@ export const useParameter = (): {
     dispatch(Actions.setParameter(payload));
   };
 
-  return { setSource, setParameter, multiSourcesDispatch };
+  const resetParameter = () => {
+    dispatch(Actions.resetParameter());
+  };
+
+  return { setSource, setParameter, resetParameter, multiSourcesDispatch };
 };

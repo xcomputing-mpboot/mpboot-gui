@@ -4,6 +4,7 @@ export const initialParameterState = {
   treefile: '',
   sequenceType: '',
   extendedParameter: '',
+  prefixOutput: '',
   seed: 0,
 };
 
@@ -13,5 +14,6 @@ export type ParameterState = {
   treefile: string;
   sequenceType: string;
   extendedParameter: string;
+  prefixOutput: string;
   seed?: number;
 };

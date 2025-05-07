@@ -1,0 +1,44 @@
+MPBoot 1.1.1 built May  3 2023
+
+Input file name: /home/khaitd0340/project_mpboot/demo2/output/execution_1725959788961_19/source.phy
+Type of analysis: Parsimony tree reconstruction
+Random seed number: 981198
+
+SEQUENCE ALIGNMENT
+------------------
+
+Input data: 7 sequences with 28 nucleotide sites
+Number of constant sites: 12 (= 42.8571% of all sites)
+Number of site patterns: 17
+
+MAXIMUM PARSIMONY TREE
+-----------------------
+
+NOTE: Tree is UNROOTED although outgroup taxon 'Frog' is drawn at root
+
++-----------------------------------------------------------Frog
+|
+|        +--Turtle
+|     +--|
+|     |  +--Bird
+|  +--|
+|  |  +--Mouse
++--|
+|  |      +--Human
+|  +------|
+|         +--Cow
+|
++--Whale
+
+Parsimony score of the tree: 18
+Tree in newick format:
+
+(Frog,(((Turtle,Bird),Mouse),(Human,Cow)),Whale);
+
+TIME STAMP
+----------
+
+Date and time: Tue Sep 10 16:16:28 2024
+Total CPU time used: 0.013454 seconds (0h:0m:0s)
+Total wall-clock time used: 0.0145741 seconds (0h:0m:0s)
+

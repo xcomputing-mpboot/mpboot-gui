@@ -1,0 +1,64 @@
+MPBoot 1.1.1 built May  3 2023
+
+Input file name: example.phy
+Type of analysis: Parsimony tree reconstruction
+Random seed number: 787364
+
+SEQUENCE ALIGNMENT
+------------------
+
+Input data: 17 sequences with 1998 nucleotide sites
+Number of constant sites: 686 (= 34.3343% of all sites)
+Number of site patterns: 1152
+
+MAXIMUM PARSIMONY TREE
+-----------------------
+
+NOTE: Tree is UNROOTED although outgroup taxon 'LngfishAu' is drawn at root
+
++-----------LngfishAu
+|
+|       +----------LngfishSA
++-------|
+|       +-----------LngfishAf
+|
+|       +-------------Frog
++-------|
+        |                 +------------Turtle
+        |         +-------|
+        |         |       |            +---------------Sphenodon
+        |         |       |      +-----|
+        |         |       |      |     +-----------------Lizard
+        |         |       +------|
+        |         |              |      +--------------Crocodile
+        |         |              +------|
+        |         |                     +------------Bird
+        +---------|
+                  |                        +-----------Human
+                  |                    +---|
+                  |                    |   |   +------Cow
+                  |                    |   +---|
+                  |                    |       +------Whale
+                  |              +-----|
+                  |              |     +------Seal
+                  |        +-----|
+                  |        |     |      +----Mouse
+                  |        |     +------|
+                  |        |            +------Rat
+                  +--------|
+                           |     +-----------Platypus
+                           +-----|
+                                 +----------Opossum
+
+Parsimony score of the tree: 4870
+Tree in newick format:
+
+(LngfishAu,(LngfishSA,LngfishAf),(Frog,((Turtle,((Sphenodon,Lizard),(Crocodile,Bird))),((((Human,(Cow,Whale)),Seal),(Mouse,Rat)),(Platypus,Opossum)))));
+
+TIME STAMP
+----------
+
+Date and time: Sun Sep  8 15:03:13 2024
+Total CPU time used: 0.327342 seconds (0h:0m:0s)
+Total wall-clock time used: 0.329877 seconds (0h:0m:0s)
+

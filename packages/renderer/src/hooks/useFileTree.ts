@@ -18,6 +18,7 @@ import { usePhylogenTree } from './usePhylogenTree';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useExecution } from './useExecution';
+import { useLog } from './useLog';
 
 const useFileTreeImpl = (): [
   nodeData: NodeData | undefined,
@@ -33,12 +34,14 @@ const useFileTreeImpl = (): [
 ] => {
   const { dirPath } = useSelector((state: RootState) => state.workspace);
   const { openFile, notifyContentFileChange } = useContentView();
-  const { multiSourcesDispatch, setParameter } = useParameter();
+  const { multiSourcesDispatch, setParameter, resetParameter } = useParameter();
   const { loadExecutionHistory, resetExecutionState } = useExecution();
-  const { setTreeFile } = usePhylogenTree();
+  const { resetNewickState } = usePhylogenTree();
+  const { resetLogState } = useLog();
   const electron = useElectron();
   const [nodeData, setNodeData] = useState<NodeData>();
   const navigate = useNavigate();
+  const sshState = useSelector((state: RootState) => state.ssh);
 
   useEffect(() => {
     if (!dirPath) {
@@ -48,8 +51,17 @@ const useFileTreeImpl = (): [
     (async () => {
       try {
         const directory = await electron.getFirstLoadDirectoryTree(dirPath);
+        console.log('directory', directory);
+        if(sshState.currentPath) {
+          const sshDir = await electron.openSSHDirectory(sshState.currentPath);
+          console.log('sshDir', sshDir);
+        }
         const tmp = convertDirectoryToNodeData(directory);
         setNodeData(tmp);
+        resetExecutionState();
+        resetParameter();
+        resetLogState();
+        resetNewickState();
       } catch (err: any) {
         toast.error(err.message);
       }
@@ -168,15 +180,19 @@ const useFileTreeImpl = (): [
       try {
         if (clickedNodeData.executionHistory) {
           const result = new RegExp('[0-9]+$').exec(clickedNodeData.executionHistory);
+          resetParameter();
           await loadExecutionHistory(+result![0], 'current');
         } else {
           if (clickedNodeData.type === 'file') {
             openFile(clickedNodeData.id);
             setParameter({
+              sequenceType: '',
+              prefixOutput: '',
               source: clickedNodeData.id,
               seed: undefined,
             });
-            setTreeFile(clickedNodeData.id);
+            resetLogState();
+            resetNewickState();
             resetExecutionState();
           }
         }

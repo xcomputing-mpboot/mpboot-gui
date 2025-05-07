@@ -6,3 +6,4 @@ import './command.ipc';
 import './menu.ipc';
 import './dialog.ipc';
 import './installation.ipc';
+import './ssh.ipc';

@@ -26,6 +26,11 @@ export const createWorkspace = async (req: CreateWorkspaceRequest) => {
   return result as IWorkspace;
 };
 
+export const createWorkspaceSSH = async (req: CreateWorkspaceRequest) => {
+  const result = await ipcRenderer.invoke(IPC_EVENTS.WORKSPACE_CREATE_SSH, req);
+  return result as IWorkspace;
+};
+
 export const removeWorkspace = async (req: number) => {
   await ipcRenderer.invoke(IPC_EVENTS.WORKSPACE_REMOVE,req);
 };

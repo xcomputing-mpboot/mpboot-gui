@@ -9,13 +9,16 @@ import type { LoadExecutionHistoryPosition } from '../../../common/commander';
 import { usePhylogenTree } from './usePhylogenTree';
 import { useLog } from './useLog';
 import { initialExecutionState } from '../redux/state/execution.state';
+import { useContentView } from './useContentView';
 
 export const useExecution = () => {
   const { id } = useSelector((state: RootState) => state.workspace);
   const dispatch = useDispatch();
   const electron = useElectron();
   const { setTreeFile } = usePhylogenTree();
+  const { openFile } = useContentView();
   const { loadFullLog } = useLog();
+
   const executeCommand = async (parameter: ParameterState, isExecutionHistory = false) => {
     try {
       const { logFile, commandId } = await electron.executeCommand({
@@ -24,12 +27,18 @@ export const useExecution = () => {
         workspaceId: id,
       });
       dispatch(
-        ExecutionActions.setExecution({ logFile, commandId, isExecutionHistory, isRunning: true }),
+        ExecutionActions.setExecution({
+          logFile,
+          commandId,
+          isExecutionHistory,
+          isRunning: true,
+        }),
       );
     } catch (err: any) {
       toast.error(err.message);
     }
   };
+
   const setSequenceNumber = (sequenceNumber: number) => {
     dispatch(ExecutionActions.setExecution({ sequenceNumber }));
   };
@@ -56,6 +65,7 @@ export const useExecution = () => {
         sequenceNumber,
         workspaceId: id,
       });
+
       dispatch(
         ExecutionActions.setExecution({
           isExecutionHistory: true,
@@ -71,6 +81,8 @@ export const useExecution = () => {
           seed,
         }),
       );
+      console.log(outputLogFilePath);
+      openFile(parameter.source!);
       setTreeFile(outputTreeFilePath);
       loadFullLog(outputLogFilePath);
     } catch (err: any) {

@@ -6,6 +6,7 @@ import { useElectron } from './useElectron';
 export const usePhylogenTree = (): {
   setNewick: (newick: string) => void;
   setTreeFile: (filePath: string) => void;
+  resetNewickState: () => void;
 } => {
   const dispatch = useDispatch();
   const electron = useElectron();
@@ -33,5 +34,9 @@ export const usePhylogenTree = (): {
     })();
   };
 
-  return { setNewick, setTreeFile };
+  const resetNewickState = () => {
+    dispatch(Actions.resetNewick());
+  };
+
+  return { setNewick, setTreeFile, resetNewickState };
 };

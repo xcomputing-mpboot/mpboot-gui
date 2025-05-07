@@ -190,8 +190,8 @@ wrapperIpcMainHandle(
       return {
         ...executionHistory.parameter,
         seed: executionHistory.seed,
-        outputLogFilePath: executionHistory.parameter.source!.concat('.log'),
-        outputTreeFilePath: executionHistory.parameter.source!.concat('.treefile'),
+        outputLogFilePath: executionHistory.getOutputFilePath('.log'),
+        outputTreeFilePath: executionHistory.getOutputFilePath('.treefile'),
         canBackward: loadedSequenceNumber > min,
         canForward: loadedSequenceNumber < max,
         loadedSequenceNumber,

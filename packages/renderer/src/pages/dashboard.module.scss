@@ -4,12 +4,16 @@
   align-items: center;
   padding: 60px 20px;
   height: 100%;
+  
   .dashboard-search {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
     gap: 20px;
+    width: 100%;
+    max-width: 800px;
+
     &__form {
       width: 40vw;
       height: 50px;
@@ -31,17 +35,15 @@
 
       .search-input {
         margin-left: 15px;
-        width: 40vw;
+        width: 100%;
         height: 40px;
         border: none;
-        border-radius: none;
         font-size: 18px;
 
         &:focus {
           border: none;
           outline: none;
           font-size: 18px;
-          text-decoration: none;
         }
       }
     }
@@ -54,13 +56,70 @@
     display: flex;
     flex-direction: row;
     justify-content: center;
-    //gap: 18vw;
 
     span {
       font-size: 20px;
       font-weight: bold;
       flex: 1;
       text-align: center;
+    }
+  }
+}
+
+
+@media (max-width: 1024px) {
+  .dashboard-content {
+    padding: 40px 15px;
+  }
+
+  .dashboard-search {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+
+    &__form {
+      width: 80vw;
+      padding: 8px 15px;
+    }
+  }
+
+  .workspace-header {
+    width: 80vw;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-content {
+    padding: 30px 10px;
+  }
+
+  .dashboard-search {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+
+    &__form {
+      width: 90vw;
+      height: 45px;
+      padding: 5px 10px;
+
+      .search-input {
+        font-size: 16px;
+      }
+    }
+  }
+
+  .workspace-header {
+    width: 90vw;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+
+    span {
+      font-size: 18px;
     }
   }
 }

@@ -17,5 +17,9 @@ export const useLog = () => {
     );
   };
 
-  return { loadFullLog };
+  const resetLogState = () => {
+    dispatch(Actions.clear());
+  };
+
+  return { loadFullLog, resetLogState };
 };

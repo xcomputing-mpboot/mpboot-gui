@@ -41,4 +41,17 @@ export const IPC_EVENTS = {
   INSTALLATION_CALLBACK_ON_ERROR: (versionId: string) =>
     `installation:${versionId}:callback-on-error`,
   INSTALLATION_USE_VERSION: 'installation:use-version',
+
+
+
+  SSH_CONNECT: 'ssh-connect',
+  SSH_DISCONNECT: 'ssh-disconnect',
+  SSH_DIRECTORY_TREE: 'ssh-directory-tree',
+  SSH_DIRECTORY_OPEN: 'ssh-directory-tree:open',
+  SSH_DIRECTORY_SELECT_PROJECT: 'ssh-directory-tree:select-project',
+  SSH_CONTENT_FILE_OPEN: 'ssh-content-file:open',
+  SSH_CONTENT_FILE_READ: 'ssh-content-file:read',
+  SSH_COMMAND_EXECUTE: 'ssh-command:execute',
+  WORKSPACE_CREATE_SSH: 'workspace:create-ssh',
+  SSH_CONTENT_FILE_COPY: 'content-file-ssh-copy',
 };

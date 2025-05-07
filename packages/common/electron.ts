@@ -16,6 +16,7 @@ import type {
   OnDownloadProgress,
 } from './installation';
 import type { ShowContextMenuRequest } from './menu';
+import type {SSHConnectionInfo, SSHConnectionResponse } from './ssh';
 import type {
   CreateWorkspaceRequest,
   IWorkspace,
@@ -70,6 +71,19 @@ export interface ExposedElectron {
 
   subscribeOnInstallationWillOpen: (onInstallationWillOpen: () => void) => () => void;
   getInstallationMetadata: () => Promise<InstallationGetMetadataResponse>;
+
+
+  // SSH section ----------------------------------------------------------------------------------
+  connectSSH: (localSSHInfo: SSHConnectionInfo) => Promise<SSHConnectionResponse>;
+  disconnectSSH: () => Promise<{ success: boolean; error?: string }>;
+  getSSHDirectoryTree: (path: string) => Promise<Directory>;
+  openSSHDirectory: (path: string) => Promise<Directory>;
+  selectSSHProjectDirectory: (path: string) => Promise<{ success: boolean; selectedPath?: string }>;
+  createWorkspaceSSH: (req: CreateWorkspaceRequest) => Promise<IWorkspace>;
+  getDirectoryTreeProjectSSH: (path: string) => Promise<Directory>;
+  copyContentFiletoSSH: (filePath: string, sshPath: string) => Promise<{ success: boolean; error?: string }>;
+  // End of SSH section ---------------------------------------------------------------------------
+
   installVersion: (
     version: {
       versionId: string;

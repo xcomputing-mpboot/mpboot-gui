@@ -15,6 +15,10 @@ export const phylogenTreeSlice = createSlice({
         newick: action.payload,
       };
     },
+
+    resetNewick: _state => {
+      return initialPhylogenTreeState;
+    },
   },
 });
 

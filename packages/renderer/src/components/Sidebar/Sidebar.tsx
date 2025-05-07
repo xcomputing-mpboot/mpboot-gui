@@ -8,6 +8,7 @@ import {
   faPenToSquare,
   faCircleExclamation,
   faRightFromBracket,
+  faTerminal,
 } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from 'src/redux/store/root';
@@ -18,6 +19,7 @@ const cx = classNames.bind(styles);
 export const Sidebar = () => {
   const navigate = useNavigate();
   const stateSideBar = useSelector((state: RootState) => state.sidebarState);
+  const dispatch = useDispatch();
 
   const handleClickOpenSideBar = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -28,7 +30,6 @@ export const Sidebar = () => {
       }),
     );
   };
-  const dispatch = useDispatch();
 
   if (stateSideBar.openSideBar) {
     return (
@@ -60,10 +61,7 @@ export const Sidebar = () => {
               navigate('/dashboard');
             }}
           >
-            <FontAwesomeIcon
-              className={cx('icon-size')}
-              icon={faHouse}
-            />
+            <FontAwesomeIcon className={cx('icon-size')} icon={faHouse} />
             <span>Dashboard</span>
             <div></div>
           </div>
@@ -82,13 +80,11 @@ export const Sidebar = () => {
               navigate('/new-workspace');
             }}
           >
-            <FontAwesomeIcon
-              className={cx('icon-size')}
-              icon={faPenToSquare}
-            />
+            <FontAwesomeIcon className={cx('icon-size')} icon={faPenToSquare} />
             <span>Create Workspace</span>
             <div></div>
           </div>
+
           <div
             className={cx(
               'sidebar__section-menu-' +
@@ -104,11 +100,28 @@ export const Sidebar = () => {
               navigate('/installation');
             }}
           >
-            <FontAwesomeIcon
-              className={cx('icon-size')}
-              icon={faCircleExclamation}
-            />
+            <FontAwesomeIcon className={cx('icon-size')} icon={faCircleExclamation} />
             <span>About</span>
+            <div></div>
+          </div>
+
+          <div
+            className={cx(
+              'sidebar__section-menu-' +
+                (stateSideBar.itemMenuSideBar === 4 ? 'active' : 'inactive'),
+            )}
+            onClick={_e => {
+              dispatch(
+                Actions.setItemMenu({
+                  itemMenuSideBar: 4,
+                  openSideBar: stateSideBar.openSideBar,
+                }),
+              );
+              navigate('/ssh-connection');
+            }}
+          >
+            <FontAwesomeIcon className={cx('icon-size')} icon={faTerminal} />
+            <span>SSH Connection</span>
             <div></div>
           </div>
         </div>
@@ -116,10 +129,7 @@ export const Sidebar = () => {
         <div className={cx('sidebar__section-quit')}>
           <button className={cx('sidebar__section-quit-button')}>
             <div className={cx('button-quit-content')}>
-              <FontAwesomeIcon
-                className={cx('icon-size')}
-                icon={faRightFromBracket}
-              />
+              <FontAwesomeIcon className={cx('icon-size')} icon={faRightFromBracket} />
               <span>Quit</span>
               <div></div>
             </div>
@@ -135,10 +145,7 @@ export const Sidebar = () => {
             onClick={handleClickOpenSideBar}
             className={cx('sidebar-close__menu-button')}
           >
-            <FontAwesomeIcon
-              className={cx('icon-active')}
-              icon={faBars}
-            />
+            <FontAwesomeIcon className={cx('icon-active')} icon={faBars} />
           </button>
           <button
             className={cx('sidebar-close__menu-button')}
@@ -157,6 +164,7 @@ export const Sidebar = () => {
               icon={faHouse}
             />
           </button>
+
           <button
             className={cx('sidebar-close__menu-button')}
             onClick={_e => {
@@ -174,6 +182,7 @@ export const Sidebar = () => {
               icon={faPenToSquare}
             />
           </button>
+
           <button
             className={cx('sidebar-close__menu-button')}
             onClick={_e => {
@@ -191,6 +200,25 @@ export const Sidebar = () => {
               icon={faCircleExclamation}
             />
           </button>
+
+          <button
+            className={cx('sidebar-close__menu-button')}
+            onClick={_e => {
+              dispatch(
+                Actions.setItemMenu({
+                  itemMenuSideBar: 4,
+                  openSideBar: stateSideBar.openSideBar,
+                }),
+              );
+              navigate('/ssh-connection');
+            }}
+          >
+            <FontAwesomeIcon
+              className={cx('icon-' + (stateSideBar.itemMenuSideBar === 4 ? 'active' : 'inactive'))}
+              icon={faTerminal}
+            />
+          </button>
+
           <button className={cx('sidebar-close__menu-quit')}>
             <FontAwesomeIcon icon={faRightFromBracket} />
           </button>

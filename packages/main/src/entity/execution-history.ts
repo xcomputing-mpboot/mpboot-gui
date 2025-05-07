@@ -15,6 +15,7 @@ export class ExecutionHistory {
   public static formatOutputName(sequenceNumber: number) {
     return `execution_${new Date().getTime()}_${sequenceNumber}`;
   }
+
   public static async createOutputExecutionHistory(
     workspacePath: string,
     sequenceNumber: number,
@@ -28,6 +29,15 @@ export class ExecutionHistory {
     await symlink(sourceFile, outputSourceFilePath);
 
     return outputSourceFilePath;
+  }
+
+  public getOutputFilePath(extension: string): string {
+    const { prefixOutput, source } = this.parameter;
+    if (!source) {
+      throw new Error('Source is undefined');
+    }
+
+    return (prefixOutput && prefixOutput !== '' ? prefixOutput : source).concat(extension);
   }
 
   public static fromRow(row: any): ExecutionHistory {
