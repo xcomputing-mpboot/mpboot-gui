@@ -93,8 +93,9 @@ wrapperIpcMainHandle(
 
     // Must have SSH info
     if (req.sshConnectionInfo) {
-      const { host, port, username, password } = req.sshConnectionInfo;
-      if (port === undefined) throw new Error('SSH port is required');
+      const { host, password, username } = req.sshConnectionInfo;
+      const port = 22; // Default SSH port
+      // if (port === undefined) throw new Error('SSH port is required');
       if (!password) throw new Error('SSH password is required');
 
       await repository.createSSHConnection(workspace.id, { host, port, username, password });
