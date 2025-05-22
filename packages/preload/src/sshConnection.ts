@@ -15,7 +15,14 @@ export const connectSSH = async (
     throw error;
   }
 };
+
 export const disconnectSSH = async (): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke(IPC_EVENTS.SSH_DISCONNECT);
-  };
-  
+};
+
+export const executeSSHCommand = async (
+  command: string,
+): Promise<{ success: boolean; output?: string; error?: string }> => {
+  return ipcRenderer.invoke(IPC_EVENTS.SSH_COMMAND_EXECUTE, { command });
+};
+

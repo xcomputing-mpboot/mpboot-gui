@@ -25,6 +25,9 @@ export const sshSlice = createSlice({
     setSelectedPath: (state, action: PayloadAction<string>) => {
       state.selectedPath = action.payload;
     },
+    setRemoteOS: (state, action: PayloadAction<string>) => {
+      state.remoteOS = action.payload;
+    },
     resetSSHState: () => initialSSHState,
   },
 });

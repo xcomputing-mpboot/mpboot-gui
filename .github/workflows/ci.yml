@@ -4,8 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
-      - 'renovate/**'
+      - binarydownload
     paths-ignore:
       - '.github/**'
       - '!.github/workflows/ci.yml'
@@ -36,6 +35,8 @@ concurrency:
 
 jobs:
   draft_release:
-    if: github.event_name == 'push' && github.ref_name == 'main'
+    if: github.event_name == 'push'
     uses: ./.github/workflows/release.yml
+    permissions:
+      contents: write
 
