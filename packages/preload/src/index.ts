@@ -37,7 +37,7 @@ import {
   useVersion,
 } from './installation';
 import { connectSSH, disconnectSSH } from './sshConnection';
-import { copyContentFiletoSSH, getSSHDirectoryTree, openSSHDirectory, selectSSHProjectDirectory} from './sshDirectoryTree';
+import { copyContentFiletoSSH, getSSHDirectoryTree, openSSHDirectory, selectSSHProjectDirectory, openContentFileSSH } from './sshDirectoryTree';
 
 export { sha256sum } from './nodeCrypto';
 export { versions } from './versions';
@@ -85,6 +85,7 @@ export const exposed: ExposedElectron = {
   createWorkspaceSSH: createWorkspaceSSH,
   getDirectoryTreeProjectSSH: getSSHDirectoryTree,
   copyContentFiletoSSH: copyContentFiletoSSH,
+  openContentFileSSH: openContentFileSSH,
 };
 
 contextBridge.exposeInMainWorld('electron', exposed);
