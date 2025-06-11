@@ -6,6 +6,7 @@ export type SSHState = {
     error?: string;
     currentPath?: string;
     selectedPath?: string;
+    remoteOS?: string;
   };
   
   export const initialSSHState: SSHState = {
@@ -15,4 +16,5 @@ export type SSHState = {
     isConnected: false,
     currentPath: '',
     selectedPath: '',
+    remoteOS: undefined,
   };

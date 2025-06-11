@@ -11,7 +11,6 @@ import { useElectron } from '../hooks/useElectron';
 
 const cx = classNames.bind(styles);
 
-
 export const SSHConnectionPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -25,7 +24,6 @@ export const SSHConnectionPage = () => {
     port: 22,
     tryKeyboard: true,
   });
-  
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -44,6 +42,15 @@ export const SSHConnectionPage = () => {
         dispatch(SSHActions.setConnectionStatus(true));
         dispatch(SSHActions.setSSHError(undefined));
         dispatch(SSHActions.setSSHDetails(localSSHInfo));
+        const osResult = await electron.executeSSHCommand('uname -s');
+        if (osResult.success) {
+          let detectedOS = osResult.output?.toLowerCase().trim();
+          if (!detectedOS || osResult.error) {
+            const winCheckResult = await electron.executeSSHCommand('ver');
+            detectedOS = winCheckResult.success ? 'windows' : 'unknown';
+          }
+          dispatch(SSHActions.setRemoteOS(detectedOS));
+        }
         navigate('/dir-view');
       } else {
         dispatch(SSHActions.setConnectionStatus(false));

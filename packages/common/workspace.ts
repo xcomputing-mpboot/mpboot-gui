@@ -14,6 +14,8 @@ export interface IWorkspace {
 export interface CreateWorkspaceRequest {
   name: string;
   path: string;
+  isSSH: boolean;
+  sshConnectionInfo?: SSHConnectionInfo;
   inputData: IWorkspaceInputData[];
 }
 

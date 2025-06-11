@@ -74,7 +74,13 @@ export const NewWorkspace = ({ isSSH }: { isSSH: boolean }) => {
             ws = await electron.createWorkspaceSSH({
               inputData: workspace.inputData || [],
               path: workspace.workspaceDirPath,
-              name: workspace.workspaceName
+              name: workspace.workspaceName,
+              isSSH: true,
+              sshConnectionInfo: {
+                host: sshState.host,
+                username: sshState.username,
+                password: sshState.password,
+              },
             });
             const res =await electron.copyContentFiletoSSH(
               workspace.inputData?.[0]?.inputPath ?? '',
@@ -89,6 +95,7 @@ export const NewWorkspace = ({ isSSH }: { isSSH: boolean }) => {
               inputData: workspace.inputData || [],
               path: workspace.workspaceDirPath,
               name: workspace.workspaceName,
+              isSSH: false,
             });
           }
           setWorkspace(ws);
