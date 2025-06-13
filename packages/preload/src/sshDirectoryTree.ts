@@ -60,3 +60,24 @@ export const copyContentFiletoSSH = async (sourcePath: string, destinationPath: 
     throw error;
   }
 };
+
+export const openContentFileSSH = async (
+  remotePath: string,
+): Promise<{ success: boolean; content?: string; error?: string }> => {
+  console.log('Opening SSH file:', remotePath);
+  try {
+    const res = await ipcRenderer.invoke(IPC_EVENTS.SSH_CONTENT_FILE_OPEN, {
+      path: remotePath,
+    });
+    if (!res.success) {
+      throw new Error(res.error ?? 'Failed to open file on SSH');
+    }
+    return { success: true, content: res.content };
+  } catch (error) {
+    console.error('SSH Open File Error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};

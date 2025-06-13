@@ -82,8 +82,8 @@ export interface ExposedElectron {
   createWorkspaceSSH: (req: CreateWorkspaceRequest) => Promise<IWorkspace>;
   getDirectoryTreeProjectSSH: (path: string) => Promise<Directory>;
   copyContentFiletoSSH: (filePath: string, sshPath: string) => Promise<{ success: boolean; error?: string }>;
+  openContentFileSSH: (filePath: string) => Promise<ContentFile>;
   executeSSHCommand: (command: string) => Promise<{ success: boolean; output?: string; error?: string }>;
-  // End of SSH section ---------------------------------------------------------------------------
 
   installVersion: (
     version: {
