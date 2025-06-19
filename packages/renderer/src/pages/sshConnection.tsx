@@ -72,7 +72,7 @@ export const SSHConnectionPage = () => {
       if (result.success) {
         dispatch(SSHActions.setConnectionStatus(false));
         dispatch(SSHActions.setSSHError(undefined));
-        alert('Disconnected successfully!');
+        //alert('Disconnected successfully!');
       } else {
         dispatch(SSHActions.setSSHError(result.error));
       }
