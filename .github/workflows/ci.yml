@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - binarydownload
+      - fix-db
     paths-ignore:
       - '.github/**'
       - '!.github/workflows/ci.yml'
