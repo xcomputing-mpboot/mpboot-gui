@@ -4,9 +4,9 @@ import { Commander } from './commander';
 export class WhichCommander extends Commander {
   constructor(targetBinary: string, spawnOptions?: SpawnOptions) {
     if (process.platform === 'win32') {
-      super('where', [targetBinary], spawnOptions);
+      super('where', [targetBinary], {spawnOptions});
     } else {
-      super('which', [targetBinary], spawnOptions);
+      super('which', [targetBinary], {spawnOptions});
     }
   }
 

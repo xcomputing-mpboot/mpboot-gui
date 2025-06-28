@@ -5,7 +5,7 @@ import { mpbootRegexPattern, versionRegexPattern } from '../common/regex';
 
 export class MPBootCommander extends Commander {
   constructor(binary: string, args: string[], spawnOptions?: SpawnOptions) {
-    super(binary, args, spawnOptions);
+    super(binary, args, {spawnOptions});
   }
 
   get sourceFilePath(): string {
