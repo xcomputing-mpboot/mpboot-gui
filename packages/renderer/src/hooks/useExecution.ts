@@ -18,7 +18,7 @@ export const useExecution = () => {
   const { setTreeFile } = usePhylogenTree();
   const { openFile } = useContentView();
   const { loadFullLog } = useLog();
-
+  //const sshState = useSelector((state: RootState) => state.ssh);
   const executeCommand = async (parameter: ParameterState, isExecutionHistory = false) => {
     try {
       const { logFile, commandId } = await electron.executeCommand({

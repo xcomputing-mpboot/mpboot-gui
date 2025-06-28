@@ -31,6 +31,8 @@ wrapperIpcMainHandle(
     const { parameter, isExecutionHistory, workspaceId } = req;
     let targetParameter = parameter;
     let sequenceNumber = -1;
+    const args = convertParameterToCommandArgs(targetParameter);
+    console.log('Executing command with args:', args);
     if (!isExecutionHistory) {
       sequenceNumber = await repository.getNextSequenceNumber(workspaceId);
       const workspace = await repository.getWorkspaceById(workspaceId);
@@ -46,7 +48,8 @@ wrapperIpcMainHandle(
       await repository.createExecutionHistory(workspaceId, sequenceNumber);
     }
 
-    const args = convertParameterToCommandArgs(targetParameter);
+    // const args = convertParameterToCommandArgs(targetParameter);
+    // console.log('Executing command with args:', args);``
     const commandId = randomUUID();
     const command = new MPBootCommander(
       globalConfig.mpboot.currentPath || preInstalledMpbootExecutable,

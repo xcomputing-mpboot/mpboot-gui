@@ -4,7 +4,7 @@ import { wrapperIpcMainHandle } from './common.ipc';
 import { NodeSSH } from 'node-ssh';
 import type { SSHDirectoryState } from '../../../common/ssh';
 
-const ssh = new NodeSSH();
+export const ssh = new NodeSSH();
 
 // Kết nối SSH
 wrapperIpcMainHandle(

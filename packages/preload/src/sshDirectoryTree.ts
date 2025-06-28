@@ -81,3 +81,20 @@ export const openContentFileSSH = async (
     };
   }
 };
+
+export const executeSSHCommand = async (command: string): Promise<{ success: boolean; output?: string; error?: string }> => {
+  console.log('Executing SSH command:', command);
+  try {
+    const res = await ipcRenderer.invoke(IPC_EVENTS.SSH_COMMAND_EXECUTE, { command });
+    if (!res.success) {
+      throw new Error(res.error ?? 'Failed to execute command on SSH');
+    }
+    return { success: true, output: res.output };
+  } catch (error) {
+    console.error('SSH Command Execution Error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};
