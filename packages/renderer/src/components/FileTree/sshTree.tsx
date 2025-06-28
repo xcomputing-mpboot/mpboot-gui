@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import './sshTree.css';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import type { Directory } from '../../../../common/directory-tree';
 import { useElectron } from '../../hooks/useElectron';
 import { Actions } from '../../redux/slice/content-file.slice';
+import { RootState } from 'src/redux/store/root';
+import { useParameter } from '../../hooks/useParameter';
 
 interface DirectoryTreeProps {
   directory: Directory;
@@ -16,7 +18,7 @@ const DirectoryTree: React.FC<DirectoryTreeProps> = ({ directory, level = 0 }) =
   const isFolder = Boolean(directory.children && directory.children.length > 0);
   const paddingLeft = `${level * 16 + (isFolder ? 0 : 20)}px`;
   const electron = useElectron();
-
+  const { setParameter ,setSource} = useParameter();
   const handleClick = async () => {
     if (isFolder) {
       setExpanded(prev => !prev);
@@ -38,6 +40,8 @@ const DirectoryTree: React.FC<DirectoryTreeProps> = ({ directory, level = 0 }) =
           content: contentFile.content,
         })
       );
+      setSource(remotePath);
+      console.log('Opened SSH file:', remotePath);
     } catch (err) {
       console.error('Unexpected error opening SSH file:', err);
     }
