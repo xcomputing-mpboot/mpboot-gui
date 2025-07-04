@@ -22,24 +22,17 @@ export const WorkspaceDirectoryInput = () => {
     [electron, workspaceDirFormRef],
   );
 
-  const onInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (workspaceDirFormRef.current) {
-      workspaceDirFormRef.current.value = e.target.value;
-    }
-  }, []);
-
   return (
     <div className={cx('workspace-input')}>
       <label>Workspace directory</label>
       <div className={cx('form-input')}>
         <input
-          placeholder='/home/Disc C/MPboot/test/Demo'
-          name="workspaceDir"
-          required
-          ref={workspaceDirFormRef}
-          onChange={onInputChange}
-        />
-        <button className={cx('button')} onClick={onCreateWorkspaceButtonClick}>Edit</button>
+        placeholder='/home/Disc C/MPboot/test/Demo'
+        name="workspaceDir"
+        required
+        ref={workspaceDirFormRef}
+      />
+      <button className={cx('button')} onClick={onCreateWorkspaceButtonClick}>Edit</button>
       </div>
     </div>
   );

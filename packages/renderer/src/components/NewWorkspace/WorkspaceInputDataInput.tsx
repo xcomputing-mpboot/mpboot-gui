@@ -25,14 +25,6 @@ export const WorkspaceInputDataInput = () => {
     })();
   }, []);
 
-  const onInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const updatedInputData = [...inputData];
-    if (updatedInputData.length > 0) {
-      updatedInputData[0].inputPath = e.target.value;
-      setInputData(updatedInputData);
-    }
-  }, [inputData]);
-
   return (
     <div className={cx('workspace-input')}>
       <label>Input Data</label>
@@ -40,8 +32,7 @@ export const WorkspaceInputDataInput = () => {
         <input
         placeholder='example.phy'
         required
-        value={inputData.length > 0 ? inputData[0].inputPath : ''}
-        onChange={onInputChange}
+        value={inputData.length>0?inputData[0].inputPath:''}
         />
         <input type="hidden" name="inputData" value={JSON.stringify(inputData[0])}
                 />

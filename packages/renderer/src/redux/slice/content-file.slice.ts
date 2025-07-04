@@ -35,7 +35,6 @@ export const contentFileSlice = createSlice({
       return {
         path: action.payload.path,
         name: action.payload.name,
-        content: action.payload.content,
       };
     },
   },
