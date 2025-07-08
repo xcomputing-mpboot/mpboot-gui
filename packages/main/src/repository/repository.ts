@@ -27,7 +27,6 @@ export class Repository {
     this.isMigrated = true;
   }
 
-  // --- Workspace CRUD ---
 
   public async createWorkspace(workspace: Workspace): Promise<Workspace> {
     await this.ensureMigrate();

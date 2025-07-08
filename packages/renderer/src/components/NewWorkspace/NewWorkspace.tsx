@@ -70,7 +70,6 @@ export const NewWorkspace = ({ isSSH }: { isSSH: boolean }) => {
           console.log('Workspace Data:', workspace);
           let ws;
           if (isSSH) {
-            // Gọi createSSHWorkspace để copy file vào thư mục dự án trên SSH
             ws = await electron.createWorkspaceSSH({
               inputData: workspace.inputData || [],
               path: workspace.workspaceDirPath,
@@ -78,6 +77,7 @@ export const NewWorkspace = ({ isSSH }: { isSSH: boolean }) => {
               isSSH: true,
               sshConnectionInfo: {
                 host: sshState.host,
+                port: 22,
                 username: sshState.username,
                 password: sshState.password,
               },

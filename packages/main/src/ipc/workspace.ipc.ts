@@ -40,7 +40,7 @@ wrapperIpcMainHandle(
     }
 
     // Create Workspace entity
-    const wsEntity = new Workspace(req.name, req.path, !!req.sshConnectionInfo);
+    const wsEntity = new Workspace(req.name, req.path, req.isSSH);
     const workspace = await repository.createWorkspace(wsEntity);
 
     // If SSH info provided, persist and reload
@@ -88,7 +88,7 @@ wrapperIpcMainHandle(
     }
 
     // Create SSH Workspace entity
-    const wsEntity = new Workspace(req.name, req.path, true);
+    const wsEntity = new Workspace(req.name, req.path, req.isSSH, req.sshConnectionInfo);
     const workspace = await repository.createWorkspace(wsEntity);
 
     // Must have SSH info

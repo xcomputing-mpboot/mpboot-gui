@@ -1,4 +1,3 @@
-import type { SSHConnection } from './ssh-connection';
 import type { WorkspaceInputData } from './workspace-input-data';
 
 export class Workspace {
@@ -16,7 +15,12 @@ export class Workspace {
     password: string;
   } | null;
 
-  constructor(name: string, path: string, isSSH: boolean, sshConnectionInfo?: SSHConnection) {
+  constructor(name: string, path: string, isSSH: boolean, sshConnectionInfo?: {
+      host: string;
+      port?: number;
+      username: string;
+      password?: string;
+    }) {
     this.sshConnectionInfo = sshConnectionInfo && sshConnectionInfo.password
       ? {
           host: sshConnectionInfo.host,
