@@ -52,21 +52,44 @@ export class Repository {
   }
 
   public async listWorkspaces(
-    opts?: PaginationOptions,
-  ): Promise<Workspace[]> {
-    await this.ensureMigrate();
-    logger.debug('Repository.listWorkspaces()', { opts });
+  opts?: PaginationOptions,
+): Promise<Workspace[]> {
+  await this.ensureMigrate();
+  logger.debug('Repository.listWorkspaces()', { opts });
 
-    const limit  = opts?.limit  ?? 6;
-    const offset = opts?.offset ?? 0;
-    const rows = await this.db.getMany(
-      `SELECT * FROM workspaces 
-       ORDER BY last_used_at DESC 
-       LIMIT ? OFFSET ?`,
-      [limit, offset],
-    );
-    return rows.map(Workspace.fromRow);
-  }
+  const limit = opts?.limit ?? 6;
+  const offset = opts?.offset ?? 0;
+
+  const rows = await this.db.getMany(
+    `SELECT w.*, 
+            s.host AS ssh_host, 
+            s.port AS ssh_port, 
+            s.username AS ssh_username, 
+            s.password AS ssh_password
+     FROM workspaces w
+     LEFT JOIN ssh_connections s 
+     ON w.id = s.workspace_id
+     ORDER BY w.last_used_at DESC 
+     LIMIT ? OFFSET ?`,
+    [limit, offset],
+  );
+
+  return rows.map(row => {
+    const workspace = Workspace.fromRow(row);
+    if (workspace.isSSH) {
+      const typedRow = row as { ssh_host: string | null; ssh_port?: number | undefined; ssh_username: string | null; ssh_password: string | null | undefined };
+      workspace.sshConnectionInfo = typedRow.ssh_host
+        ? {
+            host: typedRow.ssh_host,
+            port: typedRow.ssh_port,
+            username: typedRow.ssh_username ?? '',
+            password: typedRow.ssh_password ?? '',
+          }
+        : null;
+    }
+    return workspace;
+  });
+}
 
   public async getWorkspaceById(id: number): Promise<Workspace | null> {
     await this.ensureMigrate();

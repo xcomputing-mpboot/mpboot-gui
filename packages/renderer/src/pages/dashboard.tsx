@@ -50,11 +50,25 @@ export const DashboardPage = () => {
     });
   };
 
-  const handleClickOpenWorkspace = (
+  const handleClickOpenWorkspace = async (
     event: React.MouseEvent<HTMLButtonElement>,
     workspace: IWorkspace,
   ) => {
     event.preventDefault();
+
+    if (workspace.isSSH && workspace.sshConnectionInfo) {
+      try {
+        const result = await electron.connectSSH(workspace.sshConnectionInfo);
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to connect to SSH workspace');
+        }
+      } catch (error: any) {
+        console.error('SSH Connection Error:', error.message);
+        alert(`SSH Connection failed: ${error.message}`);
+        return;
+      }
+    }
+
     setWorkspace(workspace);
     dispatch(
       Actions.setItemMenu({

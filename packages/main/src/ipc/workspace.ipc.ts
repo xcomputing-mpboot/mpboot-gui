@@ -43,24 +43,6 @@ wrapperIpcMainHandle(
     const wsEntity = new Workspace(req.name, req.path, req.isSSH);
     const workspace = await repository.createWorkspace(wsEntity);
 
-    // If SSH info provided, persist and reload
-    if (req.sshConnectionInfo) {
-      const { host, port, username, password } = req.sshConnectionInfo;
-      if (port === undefined) throw new Error('SSH port is required');
-      if (!password) throw new Error('SSH password is required');
-
-      await repository.createSSHConnection(workspace.id, { host, port, username, password});
-      const sshEntity = await repository.getSSHConnectionByWorkspaceId(workspace.id);
-      if (sshEntity) {
-        workspace.sshConnectionInfo = {
-          host: sshEntity.host,
-          port: sshEntity.port,
-          username: sshEntity.username,
-          password: sshEntity.password,
-        };
-      }
-    }
-
     // Create input data
     const inputData = await repository.createInputDataForWorkspace(
       workspace.id,
@@ -93,12 +75,9 @@ wrapperIpcMainHandle(
 
     // Must have SSH info
     if (req.sshConnectionInfo) {
-      const { host, password, username } = req.sshConnectionInfo;
-      const port = 22; // Default SSH port
-      // if (port === undefined) throw new Error('SSH port is required');
+      const password = req.sshConnectionInfo.password;
       if (!password) throw new Error('SSH password is required');
 
-      await repository.createSSHConnection(workspace.id, { host, port, username, password });
       const sshEntity = await repository.getSSHConnectionByWorkspaceId(workspace.id);
       if (sshEntity) {
         workspace.sshConnectionInfo = {
