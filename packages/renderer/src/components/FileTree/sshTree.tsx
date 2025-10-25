@@ -6,6 +6,7 @@ import { useElectron } from '../../hooks/useElectron';
 import { Actions } from '../../redux/slice/content-file.slice';
 import { RootState } from 'src/redux/store/root';
 import { useParameter } from '../../hooks/useParameter';
+import { usePhylogenTree } from '../../hooks/usePhylogenTree';
 
 interface DirectoryTreeProps {
   directory: Directory;
@@ -21,7 +22,8 @@ const DirectoryTree: React.FC<DirectoryTreeProps> = ({ directory, level = 0 }) =
   const isFolder = directory.children !== undefined;
   const paddingLeft = `${level * 16 + (isFolder ? 0 : 20)}px`;
   const electron = useElectron();
-  const { setParameter ,setSource} = useParameter();
+  const { setParameter, setSource } = useParameter();
+  const { setTreeFile } = usePhylogenTree();
   
   const loadDirectoryChildren = async () => {
     if (loading || loadedChildren) return;
@@ -67,6 +69,12 @@ const DirectoryTree: React.FC<DirectoryTreeProps> = ({ directory, level = 0 }) =
         })
       );
       setSource(remotePath);
+      
+      // If it's a .treefile, also set it as phylogenetic tree
+      if (remotePath.toLowerCase().endsWith('.treefile')) {
+        setTreeFile(remotePath);
+      }
+      
       console.log('Opened SSH file:', remotePath);
     } catch (err) {
       console.error('Unexpected error opening SSH file:', err);

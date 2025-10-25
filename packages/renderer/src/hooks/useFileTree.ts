@@ -36,7 +36,7 @@ const useFileTreeImpl = (): [
   const { openFile, notifyContentFileChange } = useContentView();
   const { multiSourcesDispatch, setParameter, resetParameter } = useParameter();
   const { loadExecutionHistory, resetExecutionState } = useExecution();
-  const { resetNewickState } = usePhylogenTree();
+  const { resetNewickState, setTreeFile } = usePhylogenTree();
   const { resetLogState } = useLog();
   const electron = useElectron();
   const [nodeData, setNodeData] = useState<NodeData>();
@@ -194,6 +194,11 @@ const useFileTreeImpl = (): [
             resetLogState();
             resetNewickState();
             resetExecutionState();
+            
+            // Check if it's a .treefile and load it into phylogenetic tree
+            if (clickedNodeData.id.endsWith('.treefile')) {
+              setTreeFile(clickedNodeData.id);
+            }
           }
         }
       } catch (err: any) {
