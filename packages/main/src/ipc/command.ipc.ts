@@ -22,41 +22,86 @@ import path from 'path';
 import { hashFile } from '../common/hash';
 import { repository } from '../repository';
 import { globalConfig } from '../configuration';
+import { ssh } from './ssh.ipc';
 
 const globAsync = promisify(glob);
 
 wrapperIpcMainHandle(
   IPC_EVENTS.COMMAND_EXECUTE,
   async (event, req: ExecuteCommandRequest): Promise<ExecuteCommandResponse> => {
-    const { parameter, isExecutionHistory, workspaceId } = req;
-    let targetParameter = parameter;
-    let sequenceNumber = -1;
-    const args = convertParameterToCommandArgs(targetParameter);
-    console.log('Executing command with args:', args);
+    try {
+      const { parameter, isExecutionHistory, workspaceId, useSSH } = req;
+      let targetParameter = parameter;
+      let sequenceNumber = -1;
+
+      logger.debug('Command execute request', { parameter, isExecutionHistory, workspaceId, useSSH });
+
     if (!isExecutionHistory) {
       sequenceNumber = await repository.getNextSequenceNumber(workspaceId);
       const workspace = await repository.getWorkspaceById(workspaceId);
-      const newSourceFileLink = await ExecutionHistory.createOutputExecutionHistory(
-        workspace!.path,
-        sequenceNumber,
-        parameter.source!,
-      );
-      targetParameter = {
-        ...parameter,
-        source: newSourceFileLink,
-      };
+      
+      if (useSSH) {
+        const outputFolderName = ExecutionHistory.formatOutputName(sequenceNumber);
+        const remoteSourceDir = path.dirname(parameter.source!);
+        const remoteOutputDir = path.join(remoteSourceDir, 'output', outputFolderName);
+        
+        const mkdirCmd = `mkdir -p "${remoteOutputDir}" && chmod 755 "${remoteOutputDir}"`;
+        const createDirResult = await ssh.execCommand(mkdirCmd);
+        
+        if (createDirResult.code !== 0) {
+          throw new Error(`Failed to create SSH output directory: ${createDirResult.stderr || createDirResult.stdout || 'Unknown error'}`);
+        }
+        
+        const verifyCmd = `test -d "${remoteOutputDir}" && test -w "${remoteOutputDir}"`;
+        const verifyResult = await ssh.execCommand(verifyCmd);
+        
+        if (verifyResult.code !== 0) {
+          throw new Error(`Output directory not accessible or writable: ${remoteOutputDir}`);
+        }
+        
+        const sourceBasename = path.basename(parameter.source!, path.extname(parameter.source!));
+        const outputPrefix = path.join(remoteOutputDir, sourceBasename);
+        
+        targetParameter = {
+          ...parameter,
+          prefixOutput: outputPrefix,
+        };
+      } else {
+        const newSourceFileLink = await ExecutionHistory.createOutputExecutionHistory(
+          workspace!.path,
+          sequenceNumber,
+          parameter.source!,
+        );
+        targetParameter = {
+          ...parameter,
+          source: newSourceFileLink,
+        };
+      }
+      
       await repository.createExecutionHistory(workspaceId, sequenceNumber);
     }
-
-    // const args = convertParameterToCommandArgs(targetParameter);
-    // console.log('Executing command with args:', args);``
+    
     const commandId = randomUUID();
+    const spawnOptions: any = {};
+    let remoteOutputDir = '';
+    
+    if (useSSH && targetParameter.source) {
+      const sourcePath = targetParameter.source;
+      const sourceDir = sourcePath.substring(0, sourcePath.lastIndexOf('/')) || '.';
+      remoteOutputDir = sourceDir;
+      spawnOptions.cwd = remoteOutputDir;
+    }
+
+    const args = convertParameterToCommandArgs(targetParameter);
+    console.log('Executing command with args:', args);
+    
     const command = new MPBootCommander(
       globalConfig.mpboot.currentPath || preInstalledMpbootExecutable,
       args,
-      {},
+      { useSSH, spawnOptions },
     );
-    const result = await command.execute(exitCode => {
+    
+    const result = await command.execute(async (exitCode) => {
       const data: CommandCallbackOnFinishResult = {
         treeFile: command.generatedTreeFilePath,
         isError: exitCode !== 0,
@@ -64,13 +109,23 @@ wrapperIpcMainHandle(
         workspaceId,
       };
       event.sender.send(IPC_EVENTS.COMMAND_CALLBACK_ON_FINISH(commandId), data);
-      logger.debug('Sent COMMAND_CALLBACK_ON_FINISH', { commandId });
+      
+      if (useSSH) {
+        event.sender.send('ssh-directory-refresh', { 
+          message: 'Command execution completed, refresh SSH directory tree', 
+        });
+      }
     });
     return {
       logFile: result.logFile,
       commandId,
       isExecutionHistory,
     };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error in command execution';
+      logger.error('Error in command execution: ' + errorMessage);
+      throw new Error('Error when calling command:execute');
+    }
   },
 );
 

@@ -1,11 +1,11 @@
 import path from 'path';
-import type { SpawnOptions } from './commander';
+import type { CommanderOptions } from './commander';
 import { Commander } from './commander';
 import { mpbootRegexPattern, versionRegexPattern } from '../common/regex';
 
 export class MPBootCommander extends Commander {
-  constructor(binary: string, args: string[], spawnOptions?: SpawnOptions) {
-    super(binary, args, {spawnOptions});
+  constructor(binary: string, args: string[], options?: CommanderOptions) {
+    super(binary, args, options);
   }
 
   get sourceFilePath(): string {
@@ -24,12 +24,12 @@ export class MPBootCommander extends Commander {
     return `${this.sourceFilePath}.treefile`;
   }
 
-  static async getVersion(binary?: string): Promise<string> {
+  static async getVersion(binary?: string, options?: CommanderOptions): Promise<string> {
     try {
       if (!binary) {
         return 'unknown';
       }
-      const tmpCommander = new MPBootCommander(binary, ['--help']);
+      const tmpCommander = new MPBootCommander(binary, ['--help'], options);
       const output = await tmpCommander.executeInline();
       const mpbootRegex = new RegExp(mpbootRegexPattern);
       if (!mpbootRegex.test(output)) {

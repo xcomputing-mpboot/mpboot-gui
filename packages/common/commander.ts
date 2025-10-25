@@ -4,6 +4,7 @@ export interface ExecuteCommandRequest {
   parameter: Parameter;
   isExecutionHistory: boolean;
   workspaceId: number;
+  useSSH?: boolean;
 }
 export interface ExecuteCommandResponse {
   commandId: string;

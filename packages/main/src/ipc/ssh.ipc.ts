@@ -101,8 +101,8 @@ wrapperIpcMainHandle(
   IPC_EVENTS.SSH_DIRECTORY_OPEN,
   async (_, currentPath = '.') => {
     try {
-      console.log(`cd /${currentPath} && ls 2>/dev/null`);
-      const result = await ssh.execCommand(`cd /${currentPath} && ls 2>/dev/null`);
+      console.log(`cd /${currentPath} && ls -la 2>/dev/null`);
+      const result = await ssh.execCommand(`cd /${currentPath} && ls -la 2>/dev/null`);
       // Nếu stdout rỗng, tức là không có thư mục con => trả về danh sách rỗng
       if (!result.stdout.trim()) {
         return {
@@ -119,14 +119,27 @@ wrapperIpcMainHandle(
         };
       }
 
-      const directories = result.stdout
+      // Parse ls -la output to distinguish files from directories
+      const items = result.stdout
         .split('\n')
-        .filter(dir => dir.trim() !== '')
-        .map(dir => ({
-          name: dir.replace('/', ''), 
-          path: `${currentPath}/${dir.replace('/', '')}`, 
-          children: [],
-        }));
+        .filter(line => line.trim() !== '')
+        .filter(line => !line.startsWith('total ')) // Skip total line
+        .filter(line => {
+          const name = line.split(/\s+/).pop() || '';
+          return name !== '.' && name !== '..'; // Skip current and parent directory entries
+        })
+        .map(line => {
+          const parts = line.split(/\s+/);
+          const name = parts.pop() || '';
+          const permissions = parts[0] || '';
+          const isDirectory = permissions.startsWith('d');
+          
+          return {
+            name: name.replace('/', ''), 
+            path: `${currentPath}/${name.replace('/', '')}`, 
+            children: isDirectory ? [] : undefined, // Only directories have children
+          };
+        });
 
       return {
         success: true,
@@ -136,7 +149,7 @@ wrapperIpcMainHandle(
           directoryTree: {
             name: currentPath,
             path: currentPath,
-            children: directories,
+            children: items,
           },
         } as SSHDirectoryState,
       };
