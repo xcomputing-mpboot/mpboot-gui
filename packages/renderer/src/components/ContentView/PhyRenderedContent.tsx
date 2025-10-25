@@ -9,7 +9,6 @@ export type PhyRenderedContentProps = {
 
 export const PhyRenderedContent = (props: PhyRenderedContentProps) => {
   const { content } = props;
-
   const phylipMatrix = useMemo(() => loadPhylipMatrix(content), [content]);
   const [highlightCell, setHighlightCell] = useState({ col: 0, row: 0 });
 

@@ -4,7 +4,7 @@ import { wrapperIpcMainHandle } from './common.ipc';
 import { NodeSSH } from 'node-ssh';
 import type { SSHDirectoryState } from '../../../common/ssh';
 
-const ssh = new NodeSSH();
+export const ssh = new NodeSSH();
 
 // Kết nối SSH
 wrapperIpcMainHandle(
@@ -99,13 +99,65 @@ wrapperIpcMainHandle(
 // Mở thư mục trên SSH
 wrapperIpcMainHandle(
   IPC_EVENTS.SSH_DIRECTORY_OPEN,
-  async (_event, { path }) => {
+  async (_, currentPath = '.') => {
     try {
-      const result = await ssh.execCommand(`ls -l "${path}"`);
-      return { success: true, content: result.stdout };
+      console.log(`cd /${currentPath} && ls -la 2>/dev/null`);
+      const result = await ssh.execCommand(`cd /${currentPath} && ls -la 2>/dev/null`);
+      // Nếu stdout rỗng, tức là không có thư mục con => trả về danh sách rỗng
+      if (!result.stdout.trim()) {
+        return {
+          success: true,
+          message: 'ls',
+          directoryState: {
+            currentPath,
+            directoryTree: {
+              name: currentPath,
+              path: currentPath,
+              children: [], // Không có thư mục con
+            },
+          } as SSHDirectoryState,
+        };
+      }
+
+      // Parse ls -la output to distinguish files from directories
+      const items = result.stdout
+        .split('\n')
+        .filter(line => line.trim() !== '')
+        .filter(line => !line.startsWith('total ')) // Skip total line
+        .filter(line => {
+          const name = line.split(/\s+/).pop() || '';
+          return name !== '.' && name !== '..'; // Skip current and parent directory entries
+        })
+        .map(line => {
+          const parts = line.split(/\s+/);
+          const name = parts.pop() || '';
+          const permissions = parts[0] || '';
+          const isDirectory = permissions.startsWith('d');
+          
+          return {
+            name: name.replace('/', ''), 
+            path: `${currentPath}/${name.replace('/', '')}`, 
+            children: isDirectory ? [] : undefined, // Only directories have children
+          };
+        });
+
+      return {
+        success: true,
+        message: 'ls2',
+        directoryState: {
+          currentPath,
+          directoryTree: {
+            name: currentPath,
+            path: currentPath,
+            children: items,
+          },
+        } as SSHDirectoryState,
+      };
     } catch (error) {
-      return { 
-        success: false, 
+      console.error('❌ SSH_DIRECTORY_TREE Error:', error);
+      return {
+        success: false,
+        message: 'Error fetching SSH directory tree',
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }

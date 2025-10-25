@@ -18,13 +18,16 @@ export const useExecution = () => {
   const { setTreeFile } = usePhylogenTree();
   const { openFile } = useContentView();
   const { loadFullLog } = useLog();
-
+  const sshState = useSelector((state: RootState) => state.ssh);
   const executeCommand = async (parameter: ParameterState, isExecutionHistory = false) => {
     try {
+      // Note: SSH validation removed - assuming file paths from SSH tree are always remote
+
       const { logFile, commandId } = await electron.executeCommand({
         parameter,
         isExecutionHistory,
         workspaceId: id,
+        useSSH: sshState.isConnected,
       });
       dispatch(
         ExecutionActions.setExecution({
@@ -34,6 +37,11 @@ export const useExecution = () => {
           isRunning: true,
         }),
       );
+
+      // For SSH execution, show success message
+      if (sshState.isConnected) {
+        toast.success(`MPBoot execution started on SSH server ${sshState.host}. Output will be created in the remote output directory.`);
+      }
     } catch (err: any) {
       toast.error(err.message);
     }

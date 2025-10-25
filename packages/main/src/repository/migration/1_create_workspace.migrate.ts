@@ -5,7 +5,8 @@ const info = {
         path TEXT NOT NULL,
         name TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        last_used_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        last_used_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        is_ssh INTEGER NOT NULL DEFAULT 0
       )`,
   down: 'DROP TABLE workspaces',
 };

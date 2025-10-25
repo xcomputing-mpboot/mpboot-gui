@@ -77,13 +77,13 @@ export interface ExposedElectron {
   connectSSH: (localSSHInfo: SSHConnectionInfo) => Promise<SSHConnectionResponse>;
   disconnectSSH: () => Promise<{ success: boolean; error?: string }>;
   getSSHDirectoryTree: (path: string) => Promise<Directory>;
-  openSSHDirectory: (path: string) => Promise<string>;
+  openSSHDirectory: (path: string) => Promise<Directory>;
   selectSSHProjectDirectory: (path: string) => Promise<{ success: boolean; selectedPath?: string }>;
   createWorkspaceSSH: (req: CreateWorkspaceRequest) => Promise<IWorkspace>;
   getDirectoryTreeProjectSSH: (path: string) => Promise<Directory>;
   copyContentFiletoSSH: (filePath: string, sshPath: string) => Promise<{ success: boolean; error?: string }>;
+  openContentFileSSH: (filePath: string) => Promise<ContentFile>;
   executeSSHCommand: (command: string) => Promise<{ success: boolean; output?: string; error?: string }>;
-  // End of SSH section ---------------------------------------------------------------------------
 
   installVersion: (
     version: {

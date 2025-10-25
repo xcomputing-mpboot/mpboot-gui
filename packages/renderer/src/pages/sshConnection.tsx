@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { MButton } from '../components/common/Button';
@@ -25,6 +25,10 @@ export const SSHConnectionPage = () => {
     tryKeyboard: true,
   });
 
+  useEffect(() => {
+    console.log('Updated SSH State:', sshState);
+  }, [sshState]);
+
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setLocalSSHInfo({
@@ -33,7 +37,7 @@ export const SSHConnectionPage = () => {
     });
   };
 
-  const handleConnect = async () => {
+    const handleConnect = async () => {
     try {
       console.log(localSSHInfo);
       const result = await electron.connectSSH(localSSHInfo);
@@ -65,11 +69,10 @@ export const SSHConnectionPage = () => {
   const handleDisconnect = async () => {
     try {
       const result = await electron.disconnectSSH();
-
       if (result.success) {
         dispatch(SSHActions.setConnectionStatus(false));
         dispatch(SSHActions.setSSHError(undefined));
-        alert('Disconnected successfully!');
+        //alert('Disconnected successfully!');
       } else {
         dispatch(SSHActions.setSSHError(result.error));
       }
