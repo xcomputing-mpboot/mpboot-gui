@@ -99,6 +99,7 @@ export const NewWorkspace = ({ isSSH }: { isSSH: boolean }) => {
             });
           }
           setWorkspace(ws);
+          console.log('Workspace created successfully:', ws);
           dispatch(
             Actions.setItemMenu({
               itemMenuSideBar: 0,

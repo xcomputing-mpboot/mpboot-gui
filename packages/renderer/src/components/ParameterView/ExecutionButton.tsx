@@ -6,12 +6,20 @@ import { useExecution } from '../../hooks/useExecution';
 export const ExecutionButton = () => {
   const parameter = useSelector((state: RootState) => state.parameter);
   const { isRunning, isExecutionHistory } = useSelector((state: RootState) => state.execution);
+  const sshState = useSelector((state: RootState) => state.ssh);
   const { executeCommand } = useExecution();
 
   const onRunButtonSubmit: React.FormEventHandler<HTMLButtonElement> = e => {
     e.preventDefault();
-    console.log(parameter);
+    console.log('Executing command with parameters:', parameter);
+    console.log('SSH connected:', sshState.isConnected);
+    console.log('SSH host:', sshState.host);
     executeCommand(parameter, isExecutionHistory);
+  };
+
+  const getButtonText = () => {
+    const baseText = isExecutionHistory ? 'Re-run' : 'Run';
+    return sshState.isConnected ? `${baseText} (SSH)` : baseText;
   };
 
   return (
@@ -21,8 +29,9 @@ export const ExecutionButton = () => {
         onClick={onRunButtonSubmit}
         disabled={!!isRunning}
         className="btn-parameter"
+        title={sshState.isConnected ? `Will execute on ${sshState.host}` : 'Will execute locally'}
       >
-        {isExecutionHistory ? 'Re-run' : 'Run'}
+        {getButtonText()}
       </button>
     </div>
   );

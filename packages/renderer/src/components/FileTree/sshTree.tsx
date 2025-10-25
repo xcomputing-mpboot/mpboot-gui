@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import './sshTree.css';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import type { Directory } from '../../../../common/directory-tree';
 import { useElectron } from '../../hooks/useElectron';
 import { Actions } from '../../redux/slice/content-file.slice';
+import { RootState } from 'src/redux/store/root';
+import { useParameter } from '../../hooks/useParameter';
 
 interface DirectoryTreeProps {
   directory: Directory;
@@ -12,14 +14,40 @@ interface DirectoryTreeProps {
 
 const DirectoryTree: React.FC<DirectoryTreeProps> = ({ directory, level = 0 }) => {
   const [expanded, setExpanded] = useState(false);
+  const [loadedChildren, setLoadedChildren] = useState<Directory[] | null>(null);
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
-  const isFolder = Boolean(directory.children && directory.children.length > 0);
+  // Check if it's a folder: directories have children property (even if empty array), files don't
+  const isFolder = directory.children !== undefined;
   const paddingLeft = `${level * 16 + (isFolder ? 0 : 20)}px`;
   const electron = useElectron();
-
+  const { setParameter ,setSource} = useParameter();
+  
+  const loadDirectoryChildren = async () => {
+    if (loading || loadedChildren) return;
+    
+    setLoading(true);
+    try {
+      const result = await electron.openSSHDirectory(directory.path);
+      setLoadedChildren(result.children || []);
+    } catch (error) {
+      console.error('Failed to load SSH directory children:', error);
+      setLoadedChildren([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   const handleClick = async () => {
     if (isFolder) {
-      setExpanded(prev => !prev);
+      setExpanded(prev => {
+        const newExpanded = !prev;
+        // Load children when expanding for the first time
+        if (newExpanded && !loadedChildren) {
+          loadDirectoryChildren();
+        }
+        return newExpanded;
+      });
       return;
     }
 
@@ -38,6 +66,8 @@ const DirectoryTree: React.FC<DirectoryTreeProps> = ({ directory, level = 0 }) =
           content: contentFile.content,
         })
       );
+      setSource(remotePath);
+      console.log('Opened SSH file:', remotePath);
     } catch (err) {
       console.error('Unexpected error opening SSH file:', err);
     }
@@ -63,13 +93,19 @@ const DirectoryTree: React.FC<DirectoryTreeProps> = ({ directory, level = 0 }) =
       </div>
       {expanded && isFolder && (
         <div className="node-children">
-          {directory.children?.map(child => (
-            <DirectoryTree
-              key={child.path}
-              directory={child}
-              level={level + 1}
-            />
-          ))}
+          {loading ? (
+            <div style={{ paddingLeft: `${(level + 1) * 16 + 20}px` }}>
+              Đang tải...
+            </div>
+          ) : (
+            (loadedChildren || directory.children || []).map(child => (
+              <DirectoryTree
+                key={child.path}
+                directory={child}
+                level={level + 1}
+              />
+            ))
+          )}
         </div>
       )}
     </div>

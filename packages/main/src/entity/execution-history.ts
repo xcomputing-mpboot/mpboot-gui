@@ -31,6 +31,10 @@ export class ExecutionHistory {
     return outputSourceFilePath;
   }
 
+  public static async createOutputDirectoryOnly(outputFolderPath: string): Promise<void> {
+    await mkdir(outputFolderPath, { recursive: true });
+  }
+
   public getOutputFilePath(extension: string): string {
     const { prefixOutput, source } = this.parameter;
     if (!source) {

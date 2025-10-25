@@ -23,7 +23,7 @@ export const useWorkspace = (): {
     console.log('setWorkspace', ws);
     dispatch(ContentFileAction.clear());
     isSSHRef.current = !!ws.isSSH;
-
+    console.log('ws', ws);
     const payload: any = {
       dirPath: ws.path,
       name: ws.name,
