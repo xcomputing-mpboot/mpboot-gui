@@ -8,6 +8,7 @@ import { ExecutionButton } from './ExecutionButton';
 import { Seed } from './Seed';
 import { ExecutionHistoryIterator } from './ExecutionHistoryIterator';
 import { ExtendedParameter } from './ExtendedParameter';
+import { HpcParameters } from './HpcParameters';
 
 export const ParameterView = () => {
   return (
@@ -35,6 +36,14 @@ export const ParameterView = () => {
       >
         <table>
           <ExtendedParameter />
+        </table>
+      </Collapsible>
+      <Collapsible
+        trigger={'HPC Job Submission'}
+        transitionTime={1}
+      >
+        <table>
+          <HpcParameters />
         </table>
       </Collapsible>
     </div>

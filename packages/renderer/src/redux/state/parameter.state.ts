@@ -6,6 +6,9 @@ export const initialParameterState = {
   extendedParameter: '',
   prefixOutput: '',
   seed: 0,
+  submitCommand: '',
+  checkCommand: '',
+  submitTemplate: '',
 };
 
 export type ParameterState = {
@@ -16,4 +19,7 @@ export type ParameterState = {
   extendedParameter: string;
   prefixOutput: string;
   seed?: number;
+  submitCommand?: string;
+  checkCommand?: string;
+  submitTemplate?: string;
 };

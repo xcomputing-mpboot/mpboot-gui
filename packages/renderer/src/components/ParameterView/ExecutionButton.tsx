@@ -18,6 +18,9 @@ export const ExecutionButton = () => {
   };
 
   const getButtonText = () => {
+    if (isRunning) {
+      return sshState.isConnected ? 'Running on SSH...' : 'Running...';
+    }
     const baseText = isExecutionHistory ? 'Re-run' : 'Run';
     return sshState.isConnected ? `${baseText} (SSH)` : baseText;
   };
@@ -28,7 +31,7 @@ export const ExecutionButton = () => {
         id="run-button"
         onClick={onRunButtonSubmit}
         disabled={!!isRunning}
-        className="btn-parameter"
+        className={`btn-parameter ${isRunning ? 'btn-parameter-running' : ''}`}
         title={sshState.isConnected ? `Will execute on ${sshState.host}` : 'Will execute locally'}
       >
         {getButtonText()}

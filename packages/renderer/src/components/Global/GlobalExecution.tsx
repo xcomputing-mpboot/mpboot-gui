@@ -42,17 +42,20 @@ const useGlobalExecution = () => {
         execution.commandId,
         async result => {
           const { isError, sequenceNumber, treeFile } = result;
+          
+          dispatch(
+            ExecutionActions.setExecution({
+              isRunning: false,
+            }),
+          );
+          
           if (isError) {
             toast.error("Command didn't finish successfully");
           } else {
             const treeNewick = (await electron.readContentFile(treeFile)).trimEnd();
             setNewick(treeNewick);
             toast.success('Command finished successfully');
-            dispatch(
-              ExecutionActions.setExecution({
-                isRunning: false,
-              }),
-            );
+            
             if (!execution.isExecutionHistory) {
               await electron.saveCommandExecution({
                 sequenceNumber,
