@@ -101,12 +101,13 @@ wrapperIpcMainHandle(
       submitCommand: parameter.submitCommand,
       checkCommand: parameter.checkCommand,
       submitTemplate: parameter.submitTemplate,
+      eventSender: event.sender,
     } : undefined;
     
     const command = new MPBootCommander(
       globalConfig.mpboot.currentPath || preInstalledMpbootExecutable,
       args,
-      { useSSH, spawnOptions, hpcOptions },
+      { useSSH, spawnOptions, hpcOptions, eventSender: event.sender },
     );
     
     const result = await command.execute(async (exitCode) => {

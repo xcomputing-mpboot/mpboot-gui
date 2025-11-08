@@ -22,6 +22,7 @@ export interface CommanderOptions {
     checkCommand?: string;
     submitTemplate?: string;
   };
+  eventSender?: any;
 }
 
 export class Commander {
@@ -34,6 +35,7 @@ export class Commander {
     checkCommand?: string;
     submitTemplate?: string;
   };
+  private eventSender?: any;
 
   constructor(binary: string, args: string[], options?: CommanderOptions) {
     this.binary = binary;
@@ -41,6 +43,7 @@ export class Commander {
     this.spawnOptions = options?.spawnOptions;
     this.useSSH = options?.useSSH ?? false;
     this.hpcOptions = options?.hpcOptions;
+    this.eventSender = options?.eventSender;
   }
 
   private isHpcEnabled(): boolean {
@@ -132,7 +135,12 @@ EOF`;
     };
   }
 
-  private async monitorHpcJob(jobId: string, logFileName: string, onFinish: (exitCode?: number | null) => void): Promise<void> {
+  private async monitorHpcJob(
+    jobId: string, 
+    logFileName: string, 
+    onFinish: (exitCode?: number | null) => void,
+    refreshOptions?: { eventSender?: any; useSSH?: boolean },
+  ): Promise<void> {
     const checkInterval = 30000;
     const maxChecks = 240;
     let checkCount = 0;
@@ -156,6 +164,12 @@ EOF`;
           const finalUpdate = `\n=== Job Completed ===\nJob ${jobId} finished. Status: ${isError ? 'Failed' : 'Success'}\n`;
           const finalLog = await require('fs/promises').readFile(logFileName, 'utf8');
           await writeFile(logFileName, finalLog + finalUpdate);
+          
+          if (refreshOptions?.eventSender && refreshOptions?.useSSH) {
+            refreshOptions.eventSender.send('ssh-directory-refresh', { 
+              message: 'HPC job execution completed, refresh SSH directory tree', 
+            });
+          }
           
           onFinish(isError ? 1 : 0);
           return;
@@ -310,7 +324,10 @@ EOF`;
         
         await writeFile(logFileName, logContent);
         
-        this.monitorHpcJob(jobId, logFileName, onFinish);
+        this.monitorHpcJob(jobId, logFileName, onFinish, {
+          eventSender: this.eventSender,
+          useSSH: this.useSSH,
+        });
         
         return {
           logFile: logFileName,
