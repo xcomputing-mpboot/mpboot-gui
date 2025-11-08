@@ -83,13 +83,46 @@ EOF`;
     return submitResult.stdout.trim();
   }
 
-  private async checkHpcJobStatus(jobId: string): Promise<{ isRunning: boolean; output: string }> {
+  private async checkHpcJobStatus(jobId: string): Promise<{ isRunning: boolean; output: string; jobState?: string }> {
     if (!this.hpcOptions?.checkCommand) {
       throw new Error('HPC check command not configured');
     }
     
     const checkCommand = this.hpcOptions.checkCommand.replace(/{job_id}/g, jobId);
     const result = await ssh.execCommand(checkCommand);
+    
+    if (this.hpcOptions.submitCommand?.includes('sbatch')) {
+      
+      const lines = result.stdout.trim().split('\n').filter(line => line.trim());
+      
+      if (lines.length > 1) {
+        const jobDataLine = lines[1];
+        const stateMatch = jobDataLine.match(/\s+(PD|R|CG|CD|CA|F|TO|NF|RV|SE)\s+/);
+        if (stateMatch) {
+          const slurmState = stateMatch[1];
+          const runningStates = ['PD', 'R', 'CG'];
+          const isRunning = runningStates.includes(slurmState);
+          
+          return {
+            isRunning,
+            output: result.stdout + (result.stderr ? '\n' + result.stderr : ''),
+            jobState: `SLURM_${slurmState}`,
+          };
+        }
+        
+        return {
+          isRunning: true,
+          output: result.stdout + (result.stderr ? '\n' + result.stderr : ''),
+          jobState: 'SLURM_UNKNOWN',
+        };
+      } else {
+        return {
+          isRunning: false,
+          output: result.stdout + (result.stderr ? '\n' + result.stderr : '') + '\n[Status: Job completed - not found in queue]',
+          jobState: 'COMPLETED',
+        };
+      }
+    }
     
     const isRunning = result.code === 0 && result.stdout.trim().length > 0;
     
