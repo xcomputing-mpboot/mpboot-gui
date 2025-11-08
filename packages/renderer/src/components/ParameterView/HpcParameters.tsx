@@ -37,7 +37,7 @@ export const HpcParameters = () => {
   return (
     <>
       <tr className='parameter-item'>
-        <td className='parameter-item-title'>HPC Submit Command</td>
+        <td className='parameter-item-title'>Submit command</td>
         <td className='parameter-item-value'>
           <input
             onChange={onSubmitCommandChange}
@@ -49,7 +49,7 @@ export const HpcParameters = () => {
         </td>
       </tr>
       <tr className='parameter-item'>
-        <td className='parameter-item-title'>HPC Check Command</td>
+        <td className='parameter-item-title'>Check command</td>
         <td className='parameter-item-value'>
           <input
             onChange={onCheckCommandChange}
@@ -61,7 +61,7 @@ export const HpcParameters = () => {
         </td>
       </tr>
       <tr className='parameter-item'>
-        <td className='parameter-item-title'>HPC Submit Template</td>
+        <td className='parameter-item-title'>Submit template</td>
         <td className='parameter-item-value'>
           <textarea
             onChange={onSubmitTemplateChange}

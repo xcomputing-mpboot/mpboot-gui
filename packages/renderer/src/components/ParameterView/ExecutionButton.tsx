@@ -18,11 +18,21 @@ export const ExecutionButton = () => {
   };
 
   const getButtonText = () => {
+    const hasHpcParams = parameter.submitCommand && parameter.checkCommand && parameter.submitTemplate;
     if (isRunning) {
-      return sshState.isConnected ? 'Running on SSH...' : 'Running...';
+      if (sshState.isConnected) {
+        return hasHpcParams ? 'Submitting HPC Job...' : 'Running on SSH...';
+      }
+      return 'Running...';
     }
+    
     const baseText = isExecutionHistory ? 'Re-run' : 'Run';
-    return sshState.isConnected ? `${baseText} (SSH)` : baseText;
+    
+    if (sshState.isConnected) {
+      return hasHpcParams ? `${baseText} HPC Job` : `${baseText} (SSH)`;
+    }
+    
+    return baseText;
   };
 
   return (

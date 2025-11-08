@@ -7,6 +7,9 @@ export interface Parameter {
   seed?: number;
   isExecutionHistory?: boolean;
   extendedParameter?: string;
+  submitCommand?: string;
+  checkCommand?: string;
+  submitTemplate?: string;
 }
 
 export const convertParameterToCommandArgs = (parameter: Parameter): string[] => {

@@ -2,7 +2,6 @@ import { spawn, exec } from 'child_process';
 import { createWriteStream } from 'fs';
 import { writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
-import { join } from 'path';
 import { logger } from '../../../common/logger';
 import { ssh } from '../ipc/ssh.ipc';
 
@@ -18,6 +17,11 @@ export interface SpawnOptions {
 export interface CommanderOptions {
   useSSH?: boolean;
   spawnOptions?: SpawnOptions;
+  hpcOptions?: {
+    submitCommand?: string;
+    checkCommand?: string;
+    submitTemplate?: string;
+  };
 }
 
 export class Commander {
@@ -25,12 +29,132 @@ export class Commander {
   protected args: string[];
   private spawnOptions?: SpawnOptions;
   private useSSH: boolean;
+  private hpcOptions?: {
+    submitCommand?: string;
+    checkCommand?: string;
+    submitTemplate?: string;
+  };
 
   constructor(binary: string, args: string[], options?: CommanderOptions) {
     this.binary = binary;
     this.args = args;
     this.spawnOptions = options?.spawnOptions;
     this.useSSH = options?.useSSH ?? false;
+    this.hpcOptions = options?.hpcOptions;
+  }
+
+  private isHpcEnabled(): boolean {
+    return !!(
+      this.hpcOptions?.submitCommand &&
+      this.hpcOptions?.checkCommand &&
+      this.hpcOptions?.submitTemplate
+    );
+  }
+
+  private async submitHpcJob(commandStr: string): Promise<string> {
+    if (!this.hpcOptions?.submitCommand || !this.hpcOptions?.submitTemplate) {
+      throw new Error('HPC options not configured');
+    }
+
+    const { submitCommand, submitTemplate } = this.hpcOptions;
+    
+    // Replace {command} placeholder in template with actual command
+    const jobScript = submitTemplate.replace(/{command}/g, commandStr);
+    
+    const timestamp = Date.now();
+    const jobScriptPath = `/tmp/mpboot_job_${timestamp}.sh`;
+    
+    const writeScriptCommand = `cat > ${jobScriptPath} << 'EOF'
+${jobScript}
+EOF`;
+    
+    await ssh.execCommand(writeScriptCommand);
+    
+    await ssh.execCommand(`chmod +x ${jobScriptPath}`);
+    
+    const submitResult = await ssh.execCommand(`${submitCommand} ${jobScriptPath}`);
+    
+    await ssh.execCommand(`rm -f ${jobScriptPath}`);
+    
+    if (submitResult.code !== 0) {
+      throw new Error(`HPC job submission failed: ${submitResult.stderr || submitResult.stdout}`);
+    }
+    
+    return submitResult.stdout.trim();
+  }
+
+  private async checkHpcJobStatus(jobId: string): Promise<{ isRunning: boolean; output: string }> {
+    if (!this.hpcOptions?.checkCommand) {
+      throw new Error('HPC check command not configured');
+    }
+    
+    const checkCommand = this.hpcOptions.checkCommand.replace(/{job_id}/g, jobId);
+    const result = await ssh.execCommand(checkCommand);
+    
+    const isRunning = result.code === 0 && result.stdout.trim().length > 0;
+    
+    return {
+      isRunning,
+      output: result.stdout + (result.stderr ? '\n' + result.stderr : ''),
+    };
+  }
+
+  private async monitorHpcJob(jobId: string, logFileName: string, onFinish: (exitCode?: number | null) => void): Promise<void> {
+    const checkInterval = 30000;
+    const maxChecks = 240;
+    let checkCount = 0;
+    
+    const monitor = async () => {
+      try {
+        checkCount++;
+        const status = await this.checkHpcJobStatus(jobId);
+        
+        const statusUpdate = `\n=== Job Status Check ${checkCount} at ${new Date().toISOString()} ===\n${status.output}\n`;
+        const currentLog = await require('fs/promises').readFile(logFileName, 'utf8');
+        await writeFile(logFileName, currentLog + statusUpdate);
+        
+        if (!status.isRunning) {
+          logger.debug(`HPC job ${jobId} completed after ${checkCount} checks`);
+
+          const isError = status.output.toLowerCase().includes('error') || 
+                         status.output.toLowerCase().includes('failed') ||
+                         status.output.toLowerCase().includes('cancelled');
+          
+          const finalUpdate = `\n=== Job Completed ===\nJob ${jobId} finished. Status: ${isError ? 'Failed' : 'Success'}\n`;
+          const finalLog = await require('fs/promises').readFile(logFileName, 'utf8');
+          await writeFile(logFileName, finalLog + finalUpdate);
+          
+          onFinish(isError ? 1 : 0);
+          return;
+        }
+        
+        if (checkCount >= maxChecks) {
+          logger.warn(`HPC job ${jobId} monitoring timeout after ${maxChecks} checks`);
+          const timeoutUpdate = `\n=== Monitoring Timeout ===\nJob ${jobId} monitoring stopped after ${checkCount} checks (${(checkCount * checkInterval) / 1000 / 60} minutes)\n`;
+          const timeoutLog = await require('fs/promises').readFile(logFileName, 'utf8');
+          await writeFile(logFileName, timeoutLog + timeoutUpdate);
+          onFinish(1);
+          return;
+        }
+        
+        setTimeout(monitor, checkInterval);
+        
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error(`Error monitoring HPC job ${jobId}: ${errorMessage}`);
+        const errorUpdate = `\n=== Monitoring Error ===\nError checking job status: ${errorMessage}\n`;
+        try {
+          const errorLog = await require('fs/promises').readFile(logFileName, 'utf8');
+          await writeFile(logFileName, errorLog + errorUpdate);
+        } catch (logError) {
+          const logErrorMessage = logError instanceof Error ? logError.message : 'Unknown log error';
+          logger.error(`Failed to write error to log: ${logErrorMessage}`);
+        }
+        onFinish(1);
+      }
+    };
+
+    setTimeout(monitor, 5000);
   }
 
   public async executeInline(): Promise<string> {
@@ -65,10 +189,10 @@ export class Commander {
   }
 
   public async execute(onFinish: (exitCode?: number | null) => void): Promise<ExecuteResult> {
-  const logFileName = join(tmpdir(), `mpbootgui-${Date.now()}.log`);
+  //join fix
+  const logFileName = tmpdir() + `mpbootgui-${Date.now()}.log`;
   await writeFile(logFileName, '');
 
-  // Ghép binary và args thành lệnh hoàn chỉnh
   const commandStr = [this.binary, ...(this.args || [])].join(' ');
   logger.debug('Executing command:', commandStr);
 
@@ -78,14 +202,11 @@ export class Commander {
     logFileName,
   });
 
-  // Handle SSH execution
   if (this.useSSH) {
     try {
-      // First, find the full path to mpboot on the SSH server
       let mpbootPath = this.binary;
       
       if (this.binary === 'mpboot') {
-        // Try multiple methods to find mpboot
         const findMethods = [
           'which mpboot 2>/dev/null',
           'command -v mpboot 2>/dev/null', 
@@ -102,23 +223,19 @@ export class Commander {
             break;
           }
         }
-        
-        // If still not found, log available executables for debugging
+
         if (mpbootPath === 'mpboot') {
           const debugResult = await ssh.execCommand('bash -l -c \'echo "PATH: $PATH"; ls -la /usr/local/bin/ | grep -i mpboot || echo "No mpboot in /usr/local/bin"\'');
           logger.debug(`Debug mpboot search: ${debugResult.stdout}`);
         }
       }
       
-      // Rebuild command with found path
       const fullCommandStr = [mpbootPath, ...(this.args || [])].join(' ');
       
-      // Set working directory if specified in spawnOptions
       const workingDir = this.spawnOptions?.cwd;
       let fullCommand = fullCommandStr;
       
       if (workingDir) {
-        // First verify the directory exists and is accessible
         const checkDirResult = await ssh.execCommand(`test -d "${workingDir}" && echo "Directory exists" || echo "Directory missing"`);
         logger.debug(`SSH directory check: ${checkDirResult.stdout.trim()}`);
         
@@ -131,41 +248,75 @@ export class Commander {
         fullCommand = `bash -l -c 'export PATH="$HOME/.config/mpboot/bin:$PATH"; ${fullCommandStr}'`;
       }
       
-      logger.debug(`SSH executing: ${fullCommand}`);
-      const result = await ssh.execCommand(fullCommand);
-      
-      // Write comprehensive output to log file
-      const logContent = [
-        '=== SSH Command Execution Log ===',
-        `Timestamp: ${new Date().toISOString()}`,
-        `Original Binary: ${this.binary}`,
-        `Resolved MPBoot Path: ${mpbootPath}`,
-        `Command: ${fullCommand}`,
-        `Working Directory: ${workingDir || 'default'}`,
-        '',
-        '=== STDOUT ===',
-        result.stdout || '(no output)',
-        '',
-        '=== STDERR ===', 
-        result.stderr || '(no errors)',
-        '',
-        '=== Execution completed ===',
-      ].join('\n');
-      
-      await writeFile(logFileName, logContent);
-      
-      // Determine exit code based on stderr (simple heuristic)
-      const exitCode = result.stderr && result.stderr.length > 0 ? 1 : 0;
-      
-      logger.debug(`SSH execution completed with exit code: ${exitCode}`);
-      
-      // Call onFinish immediately since SSH command has completed
-      setTimeout(() => onFinish(exitCode), 100);
-      
-      return {
-        logFile: logFileName,
-        pid: Date.now(), // Use timestamp as fake PID for SSH
-      };
+      if (this.isHpcEnabled()) {
+        logger.debug('HPC mode enabled, submitting job to scheduler');
+        
+        const jobSubmissionOutput = await this.submitHpcJob(fullCommand);
+
+        let jobId = '';
+        const jobIdMatches = jobSubmissionOutput.match(/(\d+)/);
+        if (jobIdMatches) {
+          jobId = jobIdMatches[1];
+        }
+        
+        const logContent = [
+          '=== HPC Job Submission Log ===',
+          `Timestamp: ${new Date().toISOString()}`,
+          `Original binary: ${this.binary}`,
+          `Resolved MPBoot Path: ${mpbootPath}`,
+          `Command: ${fullCommand}`,
+          `Working directory: ${workingDir || 'default'}`,
+          `Submit command: ${this.hpcOptions?.submitCommand}`,
+          `Job ID: ${jobId}`,
+          '',
+          '=== Job submission output ===',
+          jobSubmissionOutput,
+          '',
+          '=== Monitoring job status ===',
+        ].join('\n');
+        
+        await writeFile(logFileName, logContent);
+        
+        this.monitorHpcJob(jobId, logFileName, onFinish);
+        
+        return {
+          logFile: logFileName,
+          pid: Date.now(),
+        };
+      } else {
+        logger.debug(`SSH executing: ${fullCommand}`);
+        const result = await ssh.execCommand(fullCommand);
+
+        const logContent = [
+          '=== SSH Command Execution Log ===',
+          `Timestamp: ${new Date().toISOString()}`,
+          `Original Binary: ${this.binary}`,
+          `Resolved MPBoot Path: ${mpbootPath}`,
+          `Command: ${fullCommand}`,
+          `Working Directory: ${workingDir || 'default'}`,
+          '',
+          '=== STDOUT ===',
+          result.stdout || '(no output)',
+          '',
+          '=== STDERR ===', 
+          result.stderr || '(no errors)',
+          '',
+          '=== Execution completed ===',
+        ].join('\n');
+        
+        await writeFile(logFileName, logContent);
+        
+        const exitCode = result.stderr && result.stderr.length > 0 ? 1 : 0;
+        
+        logger.debug(`SSH execution completed with exit code: ${exitCode}`);
+        
+        setTimeout(() => onFinish(exitCode), 100);
+        
+        return {
+          logFile: logFileName,
+          pid: Date.now(),
+        };
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown SSH execution error';
       logger.error('SSH command execution failed: ' + errorMessage);

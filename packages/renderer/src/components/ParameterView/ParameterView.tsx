@@ -39,7 +39,7 @@ export const ParameterView = () => {
         </table>
       </Collapsible>
       <Collapsible
-        trigger={'HPC Job Submission'}
+        trigger={'HPC job submission'}
         transitionTime={1}
       >
         <table>

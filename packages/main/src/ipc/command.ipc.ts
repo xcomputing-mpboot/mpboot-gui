@@ -43,7 +43,8 @@ wrapperIpcMainHandle(
       if (useSSH) {
         const outputFolderName = ExecutionHistory.formatOutputName(sequenceNumber);
         const remoteSourceDir = path.dirname(parameter.source!);
-        const remoteOutputDir = path.join(remoteSourceDir, 'output', outputFolderName);
+        //join fix
+        const remoteOutputDir = remoteSourceDir + '/output/' + outputFolderName;
         
         const mkdirCmd = `mkdir -p "${remoteOutputDir}" && chmod 755 "${remoteOutputDir}"`;
         const createDirResult = await ssh.execCommand(mkdirCmd);
@@ -60,7 +61,8 @@ wrapperIpcMainHandle(
         }
         
         const sourceBasename = path.basename(parameter.source!, path.extname(parameter.source!));
-        const outputPrefix = path.join(remoteOutputDir, sourceBasename);
+        //join fix
+        const outputPrefix = remoteOutputDir + sourceBasename;
         
         targetParameter = {
           ...parameter,
@@ -94,11 +96,17 @@ wrapperIpcMainHandle(
 
     const args = convertParameterToCommandArgs(targetParameter);
     console.log('Executing command with args:', args);
+
+    const hpcOptions = (parameter.submitCommand && parameter.checkCommand && parameter.submitTemplate) ? {
+      submitCommand: parameter.submitCommand,
+      checkCommand: parameter.checkCommand,
+      submitTemplate: parameter.submitTemplate,
+    } : undefined;
     
     const command = new MPBootCommander(
       globalConfig.mpboot.currentPath || preInstalledMpbootExecutable,
       args,
-      { useSSH, spawnOptions },
+      { useSSH, spawnOptions, hpcOptions },
     );
     
     const result = await command.execute(async (exitCode) => {
@@ -191,7 +199,8 @@ wrapperIpcMainHandle(
         );
       }
       const pattern = '*';
-      const cwd = path.join(workspace.path, 'output');
+      //join fix
+      const cwd = workspace.path + '/output';
       const all = await globAsync(pattern, { cwd });
       const onlyFiles = await globAsync(pattern, { cwd, nodir: true });
       const onlyDirectories = all.filter(x => !onlyFiles.includes(x));
