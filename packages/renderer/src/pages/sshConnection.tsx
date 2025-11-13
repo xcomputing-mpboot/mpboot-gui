@@ -21,7 +21,7 @@ export const SSHConnectionPage = () => {
     username: sshState?.username || '',
     password: sshState?.password || '',
     host: sshState?.host || '',
-    port: 22,
+    port: sshState?.port || 22,
     tryKeyboard: true,
   });
 
@@ -118,6 +118,21 @@ export const SSHConnectionPage = () => {
               placeholder="Enter host address"
             />
           </div>
+          
+          <div className={cx('form-group')}>
+            <label htmlFor="port">Port</label>
+            <input
+              type="number"
+              id="port"
+              name="port"
+              value={localSSHInfo.port}
+              onChange={handleInputChange}
+              placeholder="22"
+              min="1"
+              max="65535"
+            />
+          </div>
+          
           <div className={cx('form-group')}>
             <label htmlFor="password">Password</label>
             <input

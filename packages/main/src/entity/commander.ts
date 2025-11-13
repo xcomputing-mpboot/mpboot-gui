@@ -94,8 +94,8 @@ EOF`;
     const checkCommand = this.hpcOptions.checkCommand.replace(/{job_id}/g, jobId);
     const result = await ssh.execCommand(checkCommand);
     
+    // For SLURM-specific logic
     if (this.hpcOptions.submitCommand?.includes('sbatch')) {
-      
       const lines = result.stdout.trim().split('\n').filter(line => line.trim());
       
       if (lines.length > 1) {
@@ -117,6 +117,43 @@ EOF`;
           isRunning: true,
           output: result.stdout + (result.stderr ? '\n' + result.stderr : ''),
           jobState: 'SLURM_UNKNOWN',
+        };
+      } else {
+        return {
+          isRunning: false,
+          output: result.stdout + (result.stderr ? '\n' + result.stderr : '') + '\n[Status: Job completed - not found in queue]',
+          jobState: 'COMPLETED',
+        };
+      }
+    }
+    
+    // For PBS-specific logic
+    if (this.hpcOptions.submitCommand?.includes('qsub') || this.hpcOptions.checkCommand?.includes('qstat')) {
+      const lines = result.stdout.trim().split('\n').filter(line => line.trim());
+      
+      if (lines.length > 2) { 
+        const jobDataLine = lines[2];
+
+        const columns = jobDataLine.split(/\s+/);
+        if (columns.length >= 5) {
+          const pbsState = columns[4]; 
+          
+          // PBS job states: Q=Queued, R=Running, C=Completed, E=Exiting, H=Held, W=Waiting, T=Transit, S=Suspend
+          const runningStates = ['Q', 'R', 'W', 'T', 'H', 'S'];
+          
+          const isRunning = runningStates.includes(pbsState);
+          
+          return {
+            isRunning,
+            output: result.stdout + (result.stderr ? '\n' + result.stderr : ''),
+            jobState: `PBS_${pbsState}`,
+          };
+        }
+        
+        return {
+          isRunning: true,
+          output: result.stdout + (result.stderr ? '\n' + result.stderr : ''),
+          jobState: 'PBS_UNKNOWN',
         };
       } else {
         return {

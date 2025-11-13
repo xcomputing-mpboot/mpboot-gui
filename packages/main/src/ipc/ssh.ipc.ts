@@ -9,10 +9,10 @@ export const ssh = new NodeSSH();
 // Kết nối SSH
 wrapperIpcMainHandle(
   IPC_EVENTS.SSH_CONNECT,
-  async (_event, { username, host, password }) => {
-    console.log('🔌 SSH_CONNECT:', username, host);
+  async (_event, { username, host, password, port = 22 }) => {
+    console.log('🔌 SSH_CONNECT:', username, host, 'port:', port);
     try {
-      await ssh.connect({ host, username, password });
+      await ssh.connect({ host, username, password, port });
       return { success: true };
     } catch (error) {
       console.error(error);
