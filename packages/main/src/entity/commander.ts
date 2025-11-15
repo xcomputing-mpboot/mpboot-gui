@@ -336,11 +336,19 @@ EOF`;
         logger.debug('HPC mode enabled, submitting job to scheduler');
         
         const jobSubmissionOutput = await this.submitHpcJob(fullCommand);
-
+        
         let jobId = '';
-        const jobIdMatches = jobSubmissionOutput.match(/(\d+)/);
-        if (jobIdMatches) {
-          jobId = jobIdMatches[1];
+        
+        if (this.hpcOptions?.submitCommand?.includes('qsub')) {
+          const pbsJobMatch = jobSubmissionOutput.match(/(\d+)(?:\.\w+)?/);
+          if (pbsJobMatch) {
+            jobId = pbsJobMatch[0];
+          }
+        } else {
+          const jobIdMatches = jobSubmissionOutput.match(/(\d+)/);
+          if (jobIdMatches) {
+            jobId = jobIdMatches[1];
+          }
         }
         
         const logContent = [

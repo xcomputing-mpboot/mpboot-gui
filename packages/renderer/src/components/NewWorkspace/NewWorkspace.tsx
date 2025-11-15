@@ -77,7 +77,7 @@ export const NewWorkspace = ({ isSSH }: { isSSH: boolean }) => {
               isSSH: true,
               sshConnectionInfo: {
                 host: sshState.host,
-                port: 22,
+                port: sshState.port,
                 username: sshState.username,
                 password: sshState.password,
               },
